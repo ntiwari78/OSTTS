@@ -73,14 +73,34 @@ class T3(nn.Module):
     def device(self):
         return self.speech_head.weight.device
 
-    def prepare_conditioning(self, t3_cond: T3Cond):
+    def prepare_conditioning(
+        self,
+        t3_cond: T3Cond,
+        text_tokens: Optional[Tensor] = None,
+    ):
         """
         Token cond data needs to be embedded, so that needs to be here instead of in `T3CondEnc`.
+
+        Args:
+            t3_cond: Conditioning data container
+            text_tokens: Optional text tokens for emotion cross-attention context
+
+        Returns:
+            Conditioning embeddings (B, len_cond, dim)
         """
+        # Embed speech conditioning prompt tokens if needed
         if t3_cond.cond_prompt_speech_tokens is not None and t3_cond.cond_prompt_speech_emb is None:
             t3_cond.cond_prompt_speech_emb = self.speech_emb(t3_cond.cond_prompt_speech_tokens) + \
                 self.speech_pos_emb(t3_cond.cond_prompt_speech_tokens)
-        return self.cond_enc(t3_cond)  # (B, len_cond, dim)
+
+        # Get text context for emotion cross-attention (if text tokens provided)
+        text_context = None
+        if text_tokens is not None:
+            text_context = self.text_emb(text_tokens)  # (B, L, dim)
+            if self.hp.input_pos_emb == "learned":
+                text_context = text_context + self.text_pos_emb(text_tokens)
+
+        return self.cond_enc(t3_cond, text_context=text_context)  # (B, len_cond, dim)
 
     def prepare_input_embeds(
         self,
@@ -91,7 +111,8 @@ class T3(nn.Module):
         cfg_weight: float = 0.0,
     ):
         # prepare input embeddings (skip backbone tranformer embeddings)
-        cond_emb = self.prepare_conditioning(t3_cond)  # (B, len_cond, dim)
+        # Pass text_tokens for emotion cross-attention context
+        cond_emb = self.prepare_conditioning(t3_cond, text_tokens=text_tokens)  # (B, len_cond, dim)
         text_emb = self.text_emb(text_tokens)  # (B, len_text, dim)
         if cfg_weight > 0.0:
             text_emb[1].zero_()  # CFG uncond

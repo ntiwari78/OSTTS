@@ -20,7 +20,11 @@ class T3Config:
         self.encoder_type = "voice_encoder"
         self.speaker_embed_size = 256
         self.use_perceiver_resampler = True
-        self.emotion_adv = True
+
+        # Emotion conditioning configuration
+        self.emotion_embed_dim = 64  # Dimension for emotion type embeddings (was 8)
+        self.emotion_num_query_tokens = 4  # Number of cross-attention query tokens
+        self.emotion_cross_attn_heads = 8  # Number of attention heads for emotion cross-attention
 
     @property
     def n_channels(self):
