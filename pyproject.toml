@@ -26,6 +26,11 @@ dependencies = [
     "omegaconf"
 ]
 
+[project.optional-dependencies]
+russian = [
+    "russian-text-stresser @ git+https://github.com/Vuizur/add-stress-to-epub",
+]
+
 [project.urls]
 Homepage = "https://github.com/resemble-ai/chatterbox"
 Repository = "https://github.com/resemble-ai/chatterbox"
