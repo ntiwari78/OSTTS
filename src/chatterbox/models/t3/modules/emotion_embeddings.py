@@ -7,6 +7,7 @@ allowing the model to control emotional characteristics of generated speech.
 Features:
 - 64D embeddings with structured initialization (VAD + prosodic + fine-grained)
 - Emotion intensity control (0.0 = neutral, 1.0 = full, >1.0 = exaggerated)
+- Nonlinear intensity transformation via learned MLP
 - Emotion interpolation/blending for complex emotional expressions
 """
 
@@ -14,6 +15,117 @@ from typing import Dict, List, Optional
 
 import torch
 from torch import nn
+import torch.nn.functional as F
+
+
+# =============================================================================
+# Intensity Transform Module
+# =============================================================================
+
+class IntensityTransform(nn.Module):
+    """
+    Nonlinear intensity mapping for emotion embeddings.
+
+    Instead of linear interpolation in Euclidean space, this learns
+    a curved manifold that better captures perceptual intensity scaling.
+
+    The transform blends between linear interpolation and a learned nonlinear
+    mapping, allowing the model to capture nuanced intensity relationships.
+
+    Architecture:
+    - Input: [emotion_embed (64D), intensity (1D)] -> 65D
+    - Hidden: 128D with GELU activation
+    - Output: 64D transformed embedding
+
+    Example:
+        >>> transform = IntensityTransform(emotion_dim=64)
+        >>> neutral = torch.randn(1, 64)
+        >>> target = torch.randn(1, 64)
+        >>> intensity = torch.tensor([[0.5]])
+        >>> result = transform(neutral, target, intensity)
+    """
+
+    def __init__(self, emotion_dim: int = 64, hidden_dim: int = 128):
+        """
+        Args:
+            emotion_dim: Dimension of emotion embeddings (default: 64)
+            hidden_dim: Hidden dimension for MLP (default: 128)
+        """
+        super().__init__()
+        self.emotion_dim = emotion_dim
+        self.hidden_dim = hidden_dim
+
+        # MLP for nonlinear intensity mapping
+        # Input: target emotion + intensity scalar
+        self.transform = nn.Sequential(
+            nn.Linear(emotion_dim + 1, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.GELU(),
+            nn.Linear(hidden_dim, emotion_dim),
+        )
+
+        # Learnable blend weight between linear and nonlinear (starts at 0.5)
+        self.residual_weight = nn.Parameter(torch.tensor(0.5))
+
+        # Initialize to approximate identity + small nonlinearity
+        self._init_weights()
+
+    def _init_weights(self):
+        """Initialize weights to start close to linear interpolation behavior."""
+        for layer in self.transform:
+            if isinstance(layer, nn.Linear):
+                # Small initialization for gentle deviation from linear
+                nn.init.xavier_uniform_(layer.weight, gain=0.1)
+                nn.init.zeros_(layer.bias)
+
+    def forward(
+        self,
+        neutral_embed: torch.Tensor,  # (B, emotion_dim)
+        target_embed: torch.Tensor,   # (B, emotion_dim)
+        intensity: torch.Tensor,      # (B, 1) or scalar
+    ) -> torch.Tensor:
+        """
+        Apply nonlinear intensity transformation.
+
+        Args:
+            neutral_embed: Neutral emotion embedding (B, emotion_dim)
+            target_embed: Target emotion embedding (B, emotion_dim)
+            intensity: Intensity value (B, 1) or scalar
+
+        Returns:
+            Transformed emotion embedding (B, emotion_dim)
+        """
+        # Handle scalar and 1D intensity
+        if intensity.dim() == 0:
+            intensity = intensity.unsqueeze(0).unsqueeze(0)
+        elif intensity.dim() == 1:
+            intensity = intensity.unsqueeze(-1)
+
+        # Ensure batch dimension matches
+        if neutral_embed.dim() == 1:
+            neutral_embed = neutral_embed.unsqueeze(0)
+        if target_embed.dim() == 1:
+            target_embed = target_embed.unsqueeze(0)
+
+        # Expand intensity to match batch size
+        if intensity.size(0) != target_embed.size(0):
+            intensity = intensity.expand(target_embed.size(0), -1)
+
+        # Compute linear baseline for residual connection
+        linear_result = neutral_embed + intensity * (target_embed - neutral_embed)
+
+        # Concatenate target embedding with intensity for MLP input
+        mlp_input = torch.cat([target_embed, intensity], dim=-1)
+
+        # Nonlinear transform gives delta from neutral
+        nonlinear_delta = self.transform(mlp_input)
+
+        # Blend linear and nonlinear with learnable sigmoid weight
+        alpha = torch.sigmoid(self.residual_weight)
+        result = alpha * linear_result + (1 - alpha) * (neutral_embed + nonlinear_delta * intensity)
+
+        return result
 
 
 # 64-dimensional emotion embeddings with structured initialization:
@@ -103,6 +215,45 @@ EMOTION_INIT_EMBEDDINGS_64D = {
         vad=[0.3, 1.0, 0.9],
         prosodic=[0.4, 0.5, 0.3, 1.0, 0.6, 0.2, 0.4, -0.2, -0.4, 0.7, 0.1, 0.3, 0.3]
     ),
+
+    # =========================================================================
+    # New emotions (v0.2.1) - 5 additional emotions
+    # =========================================================================
+
+    # Sarcastic: slightly negative valence, medium arousal, medium-high dominance
+    # Characterized by exaggerated intonation patterns and deliberate pacing
+    "sarcastic": _create_64d_embedding(
+        vad=[-0.2, 0.3, 0.4],
+        prosodic=[0.2, 0.5, 0.4, 0.2, 0.3, -0.1, 0.3, -0.2, 0.0, 0.1, 0.1, 0.1, 0.0]
+    ),
+
+    # Bored: negative valence, very low arousal, low dominance
+    # Characterized by flat intonation, slow rate, low energy
+    "bored": _create_64d_embedding(
+        vad=[-0.3, -0.6, -0.2],
+        prosodic=[-0.3, -0.5, -0.4, -0.4, -0.3, -0.5, -0.4, -0.1, 0.1, -0.3, 0.0, 0.0, 0.0]
+    ),
+
+    # Affectionate: very positive valence, medium-low arousal, medium dominance
+    # Characterized by warm tone, soft voice, gentle pacing
+    "affectionate": _create_64d_embedding(
+        vad=[0.9, 0.3, 0.3],
+        prosodic=[0.2, 0.3, 0.2, 0.1, 0.2, -0.2, 0.2, 0.4, 0.3, -0.3, 0.0, 0.0, 0.0]
+    ),
+
+    # Contemptuous: negative valence, low-medium arousal, high dominance
+    # Characterized by dismissive tone, slight sneer quality
+    "contemptuous": _create_64d_embedding(
+        vad=[-0.5, 0.1, 0.6],
+        prosodic=[0.0, 0.2, 0.1, 0.1, 0.2, -0.2, 0.1, -0.3, 0.0, 0.2, 0.2, 0.1, 0.0]
+    ),
+
+    # Awed: positive valence, medium-high arousal, low dominance
+    # Characterized by breathy quality, wide pitch range, slower delivery
+    "awed": _create_64d_embedding(
+        vad=[0.6, 0.5, -0.3],
+        prosodic=[0.3, 0.5, 0.4, 0.3, 0.3, -0.2, 0.2, 0.2, 0.3, -0.1, 0.0, 0.1, 0.0]
+    ),
 }
 
 
@@ -111,29 +262,43 @@ class EmotionEmbeddings(nn.Module):
     Learnable 64-dimensional emotion type embeddings with intensity and interpolation support.
 
     Features:
-    - 64D embeddings for rich emotion representation
+    - 64D embeddings for rich emotion representation (16 emotions)
     - Intensity control: scale emotion effect from neutral (0.0) to full (1.0) to exaggerated (>1.0)
+    - Nonlinear intensity transform: learned MLP for perceptually accurate intensity scaling
     - Emotion interpolation: blend multiple emotions with weights
+
+    Supported emotions (16 total):
+    - Basic: neutral, happy, sad, angry, fearful, disgusted, surprised
+    - Extended: excited, calm, whisper, shout
+    - New (v0.2.1): sarcastic, bored, affectionate, contemptuous, awed
 
     Example:
         >>> embeddings = EmotionEmbeddings()
         >>> # Get happy embedding with full intensity
         >>> happy = embeddings.get_emotion_embedding("happy", intensity=1.0)
-        >>> # Get subtle happiness
+        >>> # Get subtle happiness with nonlinear mapping
         >>> subtle_happy = embeddings.get_emotion_embedding("happy", intensity=0.3)
         >>> # Blend emotions
         >>> bittersweet = embeddings.interpolate_emotions({"happy": 0.4, "sad": 0.6})
     """
 
-    def __init__(self, emotion_embed_dim: int = 64, emotion_types: Optional[Dict] = None):
+    def __init__(
+        self,
+        emotion_embed_dim: int = 64,
+        emotion_types: Optional[Dict] = None,
+        use_nonlinear_intensity: bool = True,
+    ):
         """
         Args:
             emotion_embed_dim: Dimension of emotion embeddings (default: 64)
             emotion_types: Dictionary mapping emotion names to initial embedding values.
                           If None, uses EMOTION_INIT_EMBEDDINGS_64D.
+            use_nonlinear_intensity: Whether to use learned nonlinear intensity transform
+                                    (default: True for v0.2+, set False for backward compatibility)
         """
         super().__init__()
         self.emotion_embed_dim = emotion_embed_dim
+        self.use_nonlinear_intensity = use_nonlinear_intensity
 
         if emotion_types is None:
             emotion_types = EMOTION_INIT_EMBEDDINGS_64D
@@ -149,6 +314,13 @@ class EmotionEmbeddings(nn.Module):
 
         # Store neutral index for intensity calculations
         self.neutral_idx = self.emotion_to_idx.get("neutral", 0)
+
+        # Nonlinear intensity transform (v0.2+)
+        if use_nonlinear_intensity:
+            self.intensity_transform = IntensityTransform(
+                emotion_dim=emotion_embed_dim,
+                hidden_dim=128,
+            )
 
         # Initialize embeddings with provided values
         init_weights = torch.zeros(num_emotions, emotion_embed_dim)
@@ -187,7 +359,8 @@ class EmotionEmbeddings(nn.Module):
         self,
         emotion_name: str,
         intensity: float = 1.0,
-        device: Optional[torch.device] = None
+        device: Optional[torch.device] = None,
+        use_linear: bool = False,
     ) -> torch.Tensor:
         """
         Get embedding for a specific emotion with intensity control.
@@ -197,10 +370,15 @@ class EmotionEmbeddings(nn.Module):
         - intensity=1.0: returns full emotion embedding
         - intensity>1.0: extrapolates beyond the emotion (exaggerated)
 
+        By default, uses nonlinear intensity transform for perceptually
+        accurate intensity scaling. Set use_linear=True for backward
+        compatibility with linear interpolation.
+
         Args:
             emotion_name: Name of the emotion (e.g., "happy", "sad")
             intensity: Emotion intensity (default: 1.0). Range typically [0.0, 1.5]
             device: Target device for the embedding tensor
+            use_linear: Force linear interpolation even if nonlinear is enabled
 
         Returns:
             Emotion embedding tensor (1, emotion_embed_dim)
@@ -226,7 +404,17 @@ class EmotionEmbeddings(nn.Module):
         neutral_tensor = torch.tensor([self.neutral_idx], dtype=torch.long, device=target_device)
         neutral_embed = self.embedding(neutral_tensor)  # (1, embed_dim)
 
-        # Interpolate: neutral + intensity * (target - neutral)
+        # Use nonlinear transform if enabled and available
+        if self.use_nonlinear_intensity and hasattr(self, 'intensity_transform') and not use_linear:
+            intensity_tensor = torch.tensor([[intensity]], device=target_device)
+            result = self.intensity_transform(
+                neutral_embed,  # (1, embed_dim)
+                target_embed,   # (1, embed_dim)
+                intensity_tensor,
+            )
+            return result
+
+        # Fallback to linear interpolation
         result = neutral_embed + intensity * (target_embed - neutral_embed)
         return result
 

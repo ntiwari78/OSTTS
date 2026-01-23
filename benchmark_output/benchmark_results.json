@@ -1,0 +1,187 @@
+{
+  "timestamp": "2025-12-04T18:05:14.031026",
+  "checkpoint": "checkpoints/emotion_merged/checkpoint_merged.pt",
+  "device": "cpu",
+  "audio_prompt": null,
+  "supported_emotions": [
+    "neutral",
+    "happy",
+    "sad",
+    "angry",
+    "excited",
+    "calm",
+    "surprised",
+    "fearful",
+    "disgusted",
+    "whisper",
+    "shout"
+  ],
+  "test_cases": [
+    {
+      "type": "basic",
+      "text": "This is a test of emotion control.",
+      "emotion": "neutral",
+      "intensity": 1.0,
+      "description": "baseline",
+      "file": "benchmark_neutral_baseline.wav",
+      "duration": 3.24,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "I am so happy to see you today!",
+      "emotion": "happy",
+      "intensity": 1.0,
+      "description": "positive",
+      "file": "benchmark_happy_positive.wav",
+      "duration": 4.52,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "I feel really sad about this news.",
+      "emotion": "sad",
+      "intensity": 1.0,
+      "description": "negative",
+      "file": "benchmark_sad_negative.wav",
+      "duration": 3.12,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "I am absolutely furious right now!",
+      "emotion": "angry",
+      "intensity": 1.0,
+      "description": "high_arousal",
+      "file": "benchmark_angry_high_arousal.wav",
+      "duration": 2.92,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "I am really scared and worried.",
+      "emotion": "fearful",
+      "intensity": 1.0,
+      "description": "fear",
+      "file": "benchmark_fearful_fear.wav",
+      "duration": 3.56,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "Wow, I cannot believe this happened!",
+      "emotion": "surprised",
+      "intensity": 1.0,
+      "description": "surprise",
+      "file": "benchmark_surprised_surprise.wav",
+      "duration": 3.36,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "I feel calm and peaceful right now.",
+      "emotion": "calm",
+      "intensity": 1.0,
+      "description": "low_arousal",
+      "file": "benchmark_calm_low_arousal.wav",
+      "duration": 2.52,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "This is absolutely disgusting!",
+      "emotion": "disgusted",
+      "intensity": 1.0,
+      "description": "disgust",
+      "file": "benchmark_disgusted_disgust.wav",
+      "duration": 1.68,
+      "status": "success"
+    },
+    {
+      "type": "basic",
+      "text": "I am so excited about this opportunity!",
+      "emotion": "excited",
+      "intensity": 1.0,
+      "description": "excited",
+      "file": "benchmark_excited_excited.wav",
+      "duration": 2.84,
+      "status": "success"
+    },
+    {
+      "type": "intensity",
+      "text": "I am excited about this!",
+      "emotion": "excited",
+      "intensity": 0.0,
+      "description": "zero_intensity",
+      "file": "benchmark_intensity_excited_0.0.wav",
+      "duration": 1.8,
+      "status": "success"
+    },
+    {
+      "type": "intensity",
+      "text": "I am excited about this!",
+      "emotion": "excited",
+      "intensity": 0.5,
+      "description": "half_intensity",
+      "file": "benchmark_intensity_excited_0.5.wav",
+      "duration": 1.68,
+      "status": "success"
+    },
+    {
+      "type": "intensity",
+      "text": "I am excited about this!",
+      "emotion": "excited",
+      "intensity": 1.0,
+      "description": "full_intensity",
+      "file": "benchmark_intensity_excited_1.0.wav",
+      "duration": 2.04,
+      "status": "success"
+    },
+    {
+      "type": "intensity",
+      "text": "I am excited about this!",
+      "emotion": "excited",
+      "intensity": 1.5,
+      "description": "high_intensity",
+      "file": "benchmark_intensity_excited_1.5.wav",
+      "duration": 2.28,
+      "status": "success"
+    },
+    {
+      "type": "blend",
+      "text": "Mixed feelings about this.",
+      "emotion_blend": {
+        "happy": 0.5,
+        "sad": 0.5
+      },
+      "description": "bittersweet",
+      "file": "benchmark_blend_bittersweet.wav",
+      "duration": 1.92,
+      "status": "success"
+    },
+    {
+      "type": "blend",
+      "text": "Nervously excited!",
+      "emotion_blend": {
+        "excited": 0.6,
+        "fearful": 0.4
+      },
+      "description": "nervous_excitement",
+      "file": "benchmark_blend_nervous_excitement.wav",
+      "duration": 2.72,
+      "status": "success"
+    },
+    {
+      "type": "blend",
+      "text": "Calmly content.",
+      "emotion_blend": {
+        "calm": 0.7,
+        "happy": 0.3
+      },
+      "description": "content",
+      "file": "benchmark_blend_content.wav",
+      "duration": 3.4,
+      "status": "success"
+    }
+  ]
+}

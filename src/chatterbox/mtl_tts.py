@@ -218,38 +218,52 @@ class ChatterboxMultilingualTTS:
         loaded_components = []
 
         # Load emotion embeddings if present
-        emotion_embed_keys = [k for k in checkpoint.keys() if "emotion_embeddings" in k or k.startswith("embedding.")]
-        if emotion_embed_keys:
-            emotion_state = {}
-            for key in emotion_embed_keys:
-                # Handle different key formats
-                if key.startswith("emotion_embeddings."):
-                    new_key = key.replace("emotion_embeddings.", "")
-                else:
-                    new_key = key
-                emotion_state[new_key] = checkpoint[key]
+        # First check for the wrapped format: emotion_embeddings_state_dict
+        if "emotion_embeddings_state_dict" in checkpoint:
+            self.emotion_embeddings.load_state_dict(checkpoint["emotion_embeddings_state_dict"], strict=False)
+            loaded_components.append("emotion_embeddings")
+        else:
+            # Try unwrapped format: keys like "emotion_embeddings.weight", etc.
+            emotion_embed_keys = [k for k in checkpoint.keys() if "emotion_embeddings" in k or k.startswith("embedding.")]
+            if emotion_embed_keys:
+                emotion_state = {}
+                for key in emotion_embed_keys:
+                    # Handle different key formats
+                    if key.startswith("emotion_embeddings."):
+                        new_key = key.replace("emotion_embeddings.", "")
+                    else:
+                        new_key = key
+                    emotion_state[new_key] = checkpoint[key]
 
-            if emotion_state:
-                self.emotion_embeddings.load_state_dict(emotion_state, strict=False)
-                loaded_components.append("emotion_embeddings")
+                if emotion_state:
+                    self.emotion_embeddings.load_state_dict(emotion_state, strict=False)
+                    loaded_components.append("emotion_embeddings")
 
         # Load T3 model weights (LoRA and emotion cross-attention)
-        t3_keys = [k for k in checkpoint.keys() if k.startswith("t3.") or "cond_enc" in k or "lora" in k]
-        if t3_keys:
-            t3_state = {}
-            for key in t3_keys:
-                # Remove "t3." prefix if present
-                if key.startswith("t3."):
-                    new_key = key[3:]
-                else:
-                    new_key = key
-                t3_state[new_key] = checkpoint[key]
+        # First check for the wrapped format: t3_state_dict
+        if "t3_state_dict" in checkpoint:
+            missing, unexpected = self.t3.load_state_dict(checkpoint["t3_state_dict"], strict=False)
+            if missing and strict:
+                print(f"Warning: Missing keys: {missing[:5]}..." if len(missing) > 5 else f"Missing keys: {missing}")
+            loaded_components.append("t3_lora_and_emotion")
+        else:
+            # Try unwrapped format: keys like "t3.layer.weight", etc.
+            t3_keys = [k for k in checkpoint.keys() if k.startswith("t3.") or "cond_enc" in k or "lora" in k]
+            if t3_keys:
+                t3_state = {}
+                for key in t3_keys:
+                    # Remove "t3." prefix if present
+                    if key.startswith("t3."):
+                        new_key = key[3:]
+                    else:
+                        new_key = key
+                    t3_state[new_key] = checkpoint[key]
 
-            if t3_state:
-                missing, unexpected = self.t3.load_state_dict(t3_state, strict=False)
-                if missing and strict:
-                    print(f"Warning: Missing keys: {missing[:5]}..." if len(missing) > 5 else f"Missing keys: {missing}")
-                loaded_components.append("t3_lora_and_emotion")
+                if t3_state:
+                    missing, unexpected = self.t3.load_state_dict(t3_state, strict=False)
+                    if missing and strict:
+                        print(f"Warning: Missing keys: {missing[:5]}..." if len(missing) > 5 else f"Missing keys: {missing}")
+                    loaded_components.append("t3_lora_and_emotion")
 
         # Also try loading full state dict directly (for some checkpoint formats)
         if not loaded_components:

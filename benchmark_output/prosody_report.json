@@ -1,0 +1,402 @@
+{
+  "benchmark_angry_high_arousal": {
+    "duration_s": 2.92,
+    "pitch": {
+      "mean_hz": 121.42153078537203,
+      "std_hz": 26.888697901924182,
+      "min_hz": 90.12504626108301,
+      "max_hz": 200.0,
+      "range_hz": 109.87495373891699,
+      "voiced_fraction": 0.7737226277372263
+    },
+    "energy": {
+      "mean": 0.10902788490056992,
+      "std": 0.07260892540216446,
+      "max": 0.3094957768917084,
+      "dynamic_range_db": 83.13235473632812
+    },
+    "spectral": {
+      "centroid_mean": 2076.553842075804,
+      "centroid_std": 1558.009649820623,
+      "rolloff_mean": 3670.7915145985403
+    },
+    "tempo_bpm": 93.75,
+    "zcr_mean": 0.11488865761861314,
+    "file": "benchmark_angry_high_arousal.wav"
+  },
+  "benchmark_blend_bittersweet": {
+    "duration_s": 1.92,
+    "pitch": {
+      "mean_hz": 147.24077819771043,
+      "std_hz": 34.69370885589311,
+      "min_hz": 88.57675191023606,
+      "max_hz": 189.86842419010387,
+      "range_hz": 101.29167227986781,
+      "voiced_fraction": 0.46153846153846156
+    },
+    "energy": {
+      "mean": 0.07447892427444458,
+      "std": 0.07332301884889603,
+      "max": 0.25032103061676025,
+      "dynamic_range_db": 68.19347381591797
+    },
+    "spectral": {
+      "centroid_mean": 2962.0563149127966,
+      "centroid_std": 2075.8879837665186,
+      "rolloff_mean": 5240.4704670329675
+    },
+    "tempo_bpm": 90.7258064516129,
+    "zcr_mean": 0.14408589457417584,
+    "file": "benchmark_blend_bittersweet.wav"
+  },
+  "benchmark_blend_content": {
+    "duration_s": 3.4,
+    "pitch": {
+      "mean_hz": 162.9205912770042,
+      "std_hz": 43.94788488923706,
+      "min_hz": 90.12504626108301,
+      "max_hz": 259.3679109302019,
+      "range_hz": 169.2428646691189,
+      "voiced_fraction": 0.61875
+    },
+    "energy": {
+      "mean": 0.09408937394618988,
+      "std": 0.07525098323822021,
+      "max": 0.24266420304775238,
+      "dynamic_range_db": 65.74623107910156
+    },
+    "spectral": {
+      "centroid_mean": 2210.2111222194226,
+      "centroid_std": 1493.103907815049,
+      "rolloff_mean": 3868.798828125
+    },
+    "tempo_bpm": 133.92857142857142,
+    "zcr_mean": 0.1015869140625,
+    "file": "benchmark_blend_content.wav"
+  },
+  "benchmark_blend_nervous_excitement": {
+    "duration_s": 2.72,
+    "pitch": {
+      "mean_hz": 116.37319152152467,
+      "std_hz": 22.694680589880818,
+      "min_hz": 84.57676786314485,
+      "max_hz": 204.67477839935495,
+      "range_hz": 120.0980105362101,
+      "voiced_fraction": 0.375
+    },
+    "energy": {
+      "mean": 0.058859556913375854,
+      "std": 0.06309787184000015,
+      "max": 0.2284131944179535,
+      "dynamic_range_db": 63.507408142089844
+    },
+    "spectral": {
+      "centroid_mean": 1691.0722622474111,
+      "centroid_std": 1431.8138702728447,
+      "rolloff_mean": 3089.7216796875
+    },
+    "tempo_bpm": 96.98275862068965,
+    "zcr_mean": 0.08038330078125,
+    "file": "benchmark_blend_nervous_excitement.wav"
+  },
+  "benchmark_calm_low_arousal": {
+    "duration_s": 2.52,
+    "pitch": {
+      "mean_hz": 149.30382030890823,
+      "std_hz": 52.61088626299229,
+      "min_hz": 83.12378961427878,
+      "max_hz": 308.44216508158814,
+      "range_hz": 225.31837546730935,
+      "voiced_fraction": 0.7815126050420168
+    },
+    "energy": {
+      "mean": 0.11162548512220383,
+      "std": 0.07202354073524475,
+      "max": 0.24938242137432098,
+      "dynamic_range_db": 71.83846282958984
+    },
+    "spectral": {
+      "centroid_mean": 2041.2710203156794,
+      "centroid_std": 1330.4859737232136,
+      "rolloff_mean": 3763.0974264705883
+    },
+    "tempo_bpm": 93.75,
+    "zcr_mean": 0.09054129464285714,
+    "file": "benchmark_calm_low_arousal.wav"
+  },
+  "benchmark_disgusted_disgust": {
+    "duration_s": 1.68,
+    "pitch": {
+      "mean_hz": 157.853923153565,
+      "std_hz": 17.387308774837585,
+      "min_hz": 139.79699341790194,
+      "max_hz": 188.7748625363387,
+      "range_hz": 48.97786911843676,
+      "voiced_fraction": 0.12658227848101267
+    },
+    "energy": {
+      "mean": 0.0666508898139,
+      "std": 0.05981477349996567,
+      "max": 0.21402129530906677,
+      "dynamic_range_db": 72.74463653564453
+    },
+    "spectral": {
+      "centroid_mean": 2837.5899194484955,
+      "centroid_std": 1585.0994818229476,
+      "rolloff_mean": 5281.8928006329115
+    },
+    "tempo_bpm": 108.17307692307692,
+    "zcr_mean": 0.13501285601265822,
+    "file": "benchmark_disgusted_disgust.wav"
+  },
+  "benchmark_excited_excited": {
+    "duration_s": 2.84,
+    "pitch": {
+      "mean_hz": 180.15495632011567,
+      "std_hz": 75.29491044690478,
+      "min_hz": 105.94630943592954,
+      "max_hz": 462.14107874890925,
+      "range_hz": 356.1947693129797,
+      "voiced_fraction": 0.5597014925373134
+    },
+    "energy": {
+      "mean": 0.08571243286132812,
+      "std": 0.07281100749969482,
+      "max": 0.2393680363893509,
+      "dynamic_range_db": 83.64757537841797
+    },
+    "spectral": {
+      "centroid_mean": 2072.3326387319603,
+      "centroid_std": 1598.1852787107177,
+      "rolloff_mean": 3797.5746268656717
+    },
+    "tempo_bpm": 90.7258064516129,
+    "zcr_mean": 0.11071230760261194,
+    "file": "benchmark_excited_excited.wav"
+  },
+  "benchmark_fearful_fear": {
+    "duration_s": 3.56,
+    "pitch": {
+      "mean_hz": 114.25117345958942,
+      "std_hz": 30.578610119196394,
+      "min_hz": 67.5174973084095,
+      "max_hz": 194.30638823072118,
+      "range_hz": 126.78889092231168,
+      "voiced_fraction": 0.7305389221556886
+    },
+    "energy": {
+      "mean": 0.06271373480558395,
+      "std": 0.06714144349098206,
+      "max": 0.25139856338500977,
+      "dynamic_range_db": 67.18236541748047
+    },
+    "spectral": {
+      "centroid_mean": 1519.3449495939265,
+      "centroid_std": 1209.7097658868036,
+      "rolloff_mean": 2723.381362275449
+    },
+    "tempo_bpm": 117.1875,
+    "zcr_mean": 0.06340931418413173,
+    "file": "benchmark_fearful_fear.wav"
+  },
+  "benchmark_happy_positive": {
+    "duration_s": 4.52,
+    "pitch": {
+      "mean_hz": 177.3097233211818,
+      "std_hz": 26.41477934944944,
+      "min_hz": 100.0,
+      "max_hz": 236.47155720542963,
+      "range_hz": 136.47155720542963,
+      "voiced_fraction": 0.38207547169811323
+    },
+    "energy": {
+      "mean": 0.07933676987886429,
+      "std": 0.07532547414302826,
+      "max": 0.23970343172550201,
+      "dynamic_range_db": 80.24933624267578
+    },
+    "spectral": {
+      "centroid_mean": 2781.82841467671,
+      "centroid_std": 1837.155848593841,
+      "rolloff_mean": 4820.994251179245
+    },
+    "tempo_bpm": 140.625,
+    "zcr_mean": 0.15871674159787735,
+    "file": "benchmark_happy_positive.wav"
+  },
+  "benchmark_intensity_excited_0.0": {
+    "duration_s": 1.8,
+    "pitch": {
+      "mean_hz": 175.03374865825563,
+      "std_hz": 53.17794751305827,
+      "min_hz": 97.15319411536059,
+      "max_hz": 270.06998923363795,
+      "range_hz": 172.91679511827738,
+      "voiced_fraction": 0.6705882352941176
+    },
+    "energy": {
+      "mean": 0.10718830674886703,
+      "std": 0.06720016896724701,
+      "max": 0.2494317889213562,
+      "dynamic_range_db": 64.73148345947266
+    },
+    "spectral": {
+      "centroid_mean": 2581.027781806732,
+      "centroid_std": 2116.054760434467,
+      "rolloff_mean": 4327.527573529412
+    },
+    "tempo_bpm": 216.34615384615384,
+    "zcr_mean": 0.14426700367647058,
+    "file": "benchmark_intensity_excited_0.0.wav"
+  },
+  "benchmark_intensity_excited_0.5": {
+    "duration_s": 1.68,
+    "pitch": {
+      "mean_hz": 156.30635597940258,
+      "std_hz": 60.7382603438721,
+      "min_hz": 90.64713534281104,
+      "max_hz": 279.5939868358039,
+      "range_hz": 188.94685149299283,
+      "voiced_fraction": 0.5949367088607594
+    },
+    "energy": {
+      "mean": 0.10444802790880203,
+      "std": 0.07990821450948715,
+      "max": 0.2549635171890259,
+      "dynamic_range_db": 67.41148376464844
+    },
+    "spectral": {
+      "centroid_mean": 2862.368149850887,
+      "centroid_std": 2041.7519186718291,
+      "rolloff_mean": 4928.401898734177
+    },
+    "tempo_bpm": 112.5,
+    "zcr_mean": 0.13977823378164558,
+    "file": "benchmark_intensity_excited_0.5.wav"
+  },
+  "benchmark_intensity_excited_1.0": {
+    "duration_s": 2.04,
+    "pitch": {
+      "mean_hz": 181.4106321635227,
+      "std_hz": 31.70950924558324,
+      "min_hz": 126.72196982870621,
+      "max_hz": 237.8414230005442,
+      "range_hz": 111.119453171838,
+      "voiced_fraction": 0.2916666666666667
+    },
+    "energy": {
+      "mean": 0.07210753113031387,
+      "std": 0.0724027082324028,
+      "max": 0.21885523200035095,
+      "dynamic_range_db": 65.08287048339844
+    },
+    "spectral": {
+      "centroid_mean": 2610.5454704331737,
+      "centroid_std": 1931.2301128879055,
+      "rolloff_mean": 4585.44921875
+    },
+    "tempo_bpm": 140.625,
+    "zcr_mean": 0.13689676920572916,
+    "file": "benchmark_intensity_excited_1.0.wav"
+  },
+  "benchmark_intensity_excited_1.5": {
+    "duration_s": 2.28,
+    "pitch": {
+      "mean_hz": 162.20499163863718,
+      "std_hz": 27.193129969573068,
+      "min_hz": 114.86983549970348,
+      "max_hz": 196.56411970905023,
+      "range_hz": 81.69428420934675,
+      "voiced_fraction": 0.37383177570093457
+    },
+    "energy": {
+      "mean": 0.07249388098716736,
+      "std": 0.07297280430793762,
+      "max": 0.20434445142745972,
+      "dynamic_range_db": 80.53395080566406
+    },
+    "spectral": {
+      "centroid_mean": 2393.1325967144726,
+      "centroid_std": 1578.6354916571788,
+      "rolloff_mean": 4436.477803738318
+    },
+    "tempo_bpm": 122.28260869565217,
+    "zcr_mean": 0.12103898948598131,
+    "file": "benchmark_intensity_excited_1.5.wav"
+  },
+  "benchmark_neutral_baseline": {
+    "duration_s": 3.24,
+    "pitch": {
+      "mean_hz": 143.26785470093012,
+      "std_hz": 42.18461830216883,
+      "min_hz": 91.70040432046711,
+      "max_hz": 256.3888163841458,
+      "range_hz": 164.6884120636787,
+      "voiced_fraction": 0.7763157894736842
+    },
+    "energy": {
+      "mean": 0.10806562006473541,
+      "std": 0.06281834840774536,
+      "max": 0.23779623210430145,
+      "dynamic_range_db": 80.9074478149414
+    },
+    "spectral": {
+      "centroid_mean": 1894.2889372700945,
+      "centroid_std": 1413.9395741936903,
+      "rolloff_mean": 3464.9722450657896
+    },
+    "tempo_bpm": 140.625,
+    "zcr_mean": 0.08868086965460527,
+    "file": "benchmark_neutral_baseline.wav"
+  },
+  "benchmark_sad_negative": {
+    "duration_s": 3.12,
+    "pitch": {
+      "mean_hz": 154.56394378499286,
+      "std_hz": 56.933350151441225,
+      "min_hz": 78.91291473386416,
+      "max_hz": 268.51450055605267,
+      "range_hz": 189.6015858221885,
+      "voiced_fraction": 0.7074829931972789
+    },
+    "energy": {
+      "mean": 0.10203398019075394,
+      "std": 0.0699995905160904,
+      "max": 0.21908970177173615,
+      "dynamic_range_db": 67.08363342285156
+    },
+    "spectral": {
+      "centroid_mean": 2437.320569539586,
+      "centroid_std": 1737.8248515420553,
+      "rolloff_mean": 4260.682397959184
+    },
+    "tempo_bpm": 133.92857142857142,
+    "zcr_mean": 0.1255414275085034,
+    "file": "benchmark_sad_negative.wav"
+  },
+  "benchmark_surprised_surprise": {
+    "duration_s": 3.36,
+    "pitch": {
+      "mean_hz": 186.09022879637433,
+      "std_hz": 42.74253113639125,
+      "min_hz": 77.11054127039704,
+      "max_hz": 247.65527207548806,
+      "range_hz": 170.54473080509104,
+      "voiced_fraction": 0.5759493670886076
+    },
+    "energy": {
+      "mean": 0.09213628619909286,
+      "std": 0.07428517937660217,
+      "max": 0.24312421679496765,
+      "dynamic_range_db": 70.88128662109375
+    },
+    "spectral": {
+      "centroid_mean": 2115.8572612196535,
+      "centroid_std": 1278.981568737319,
+      "rolloff_mean": 3816.159018987342
+    },
+    "tempo_bpm": 85.22727272727273,
+    "zcr_mean": 0.10161503659018987,
+    "file": "benchmark_surprised_surprise.wav"
+  }
+}

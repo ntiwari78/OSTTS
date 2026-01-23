@@ -1,0 +1,13 @@
+IESC Data Reorganization Summary
+============================================================
+
+Source: /Users/ntiwari/IITP/data_emotions/Indian Emotional Speech Corpora (IESC)
+Target: data/hindi_emotions
+Total files: 600
+
+Files per emotion:
+  emotion_angry: 120 files
+  emotion_fearful: 120 files
+  emotion_happy: 120 files
+  emotion_neutral: 120 files
+  emotion_sad: 120 files

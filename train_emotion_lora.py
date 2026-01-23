@@ -2,20 +2,31 @@
 """
 Fine-tune Chatterbox T3 model with LoRA/Adapter for emotion control.
 
-This script fine-tunes the T3 model on emotion-labeled audio data (RAVDESS, CREMA-D, etc.)
+This script fine-tunes the T3 model on emotion-labeled audio data (RAVDESS, CREMA-D, IESC)
 using LoRA (Low-Rank Adaptation) or Adapter layers for efficient training.
 
 Supported datasets:
-- RAVDESS: 8 emotions (neutral, calm, happy, sad, angry, fearful, disgusted, surprised)
-- CREMA-D: 6 emotions (neutral, happy, sad, angry, fearful, disgusted)
+- RAVDESS: 8 emotions (neutral, calm, happy, sad, angry, fearful, disgusted, surprised) - 1,440 samples
+- CREMA-D: 6 emotions (neutral, happy, sad, angry, fearful, disgusted) - 7,442 samples
+- IESC: 5 emotions (neutral, happy, sad, angry, fearful) - ~600 samples (Hindi)
+
+Features:
+- Per-dataset training with separate checkpoints
+- Data validation to ensure all samples are loaded
+- Balanced sampling strategies
+- Training logs with full metrics
 """
 
 import sys
 from pathlib import Path
 import argparse
 import json
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass, field, asdict
+from collections import defaultdict
 import os
+import time
+from datetime import datetime
 
 # Add src directory to Python path
 src_path = Path(__file__).parent / "src"
@@ -44,6 +55,164 @@ from chatterbox.models.s3gen import S3GEN_SR
 from chatterbox.models.tokenizers import MTLTokenizer
 
 
+# =============================================================================
+# Dataset Configuration
+# =============================================================================
+
+@dataclass
+class DatasetConfig:
+    """Configuration for emotion dataset."""
+    name: str
+    default_path: str
+    emotion_mapping: Dict[str, str]
+    expected_samples: int
+    language: str = "en"
+    description: str = ""
+    unique_emotions: List[str] = field(default_factory=list)
+
+
+# Dataset-specific emotion mappings and configurations
+DATASET_CONFIGS = {
+    "ravdess": DatasetConfig(
+        name="ravdess",
+        default_path="data/ravdess_emotions",
+        emotion_mapping={
+            "emotion_neutral": "neutral",
+            "emotion_calm": "calm",
+            "emotion_happy": "happy",
+            "emotion_sad": "sad",
+            "emotion_angry": "angry",
+            "emotion_fearful": "fearful",
+            "emotion_disgusted": "disgusted",
+            "emotion_surprised": "surprised",
+        },
+        expected_samples=1440,
+        language="en",
+        description="RAVDESS: Ryerson Audio-Visual Database of Emotional Speech and Song",
+        unique_emotions=["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    ),
+    "cremad": DatasetConfig(
+        name="cremad",
+        default_path="data/cremad_emotions",
+        emotion_mapping={
+            "emotion_neutral": "neutral",
+            "emotion_happy": "happy",
+            "emotion_sad": "sad",
+            "emotion_angry": "angry",
+            "emotion_fearful": "fearful",
+            "emotion_disgusted": "disgusted",
+        },
+        expected_samples=7442,
+        language="en",
+        description="CREMA-D: Crowd-sourced Emotional Multimodal Actors Dataset",
+        unique_emotions=["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    ),
+    "iesc": DatasetConfig(
+        name="iesc",
+        default_path="data/iesc_emotions",
+        emotion_mapping={
+            "emotion_neutral": "neutral",
+            "emotion_happy": "happy",
+            "emotion_sad": "sad",
+            "emotion_angry": "angry",
+            "emotion_fearful": "fearful",
+        },
+        expected_samples=600,
+        language="hi",
+        description="IESC: Indian Emotional Speech Corpus (Hindi)",
+        unique_emotions=["neutral", "happy", "sad", "angry", "fearful"],
+    ),
+}
+
+# Combined emotion mapping for all datasets
+COMBINED_EMOTION_MAPPING = {
+    "emotion_angry": "angry",
+    "emotion_calm": "calm",
+    "emotion_disgusted": "disgusted",
+    "emotion_fearful": "fearful",
+    "emotion_happy": "happy",
+    "emotion_neutral": "neutral",
+    "emotion_sad": "sad",
+    "emotion_surprised": "surprised",
+    "emotion_excited": "excited",
+    "emotion_whisper": "whisper",
+    "emotion_shout": "shout",
+}
+
+
+@dataclass
+class TrainingLog:
+    """Training log structure for tracking progress."""
+    dataset_name: str
+    start_time: str
+    end_time: str = ""
+    total_samples: int = 0
+    expected_samples: int = 0
+    samples_loaded: int = 0
+    missed_files: List[str] = field(default_factory=list)
+    epochs_completed: int = 0
+    final_loss: float = 0.0
+    early_stopped: bool = False
+    emotion_distribution: Dict[str, int] = field(default_factory=dict)
+    batch_losses: List[float] = field(default_factory=list)
+    epoch_losses: List[float] = field(default_factory=list)
+    config: Dict = field(default_factory=dict)
+
+    def save(self, path: Path):
+        """Save training log to JSON."""
+        with open(path, 'w') as f:
+            json.dump(asdict(self), f, indent=2)
+
+
+def validate_dataset_coverage(
+    dataset: "EmotionDataset",
+    config: DatasetConfig
+) -> Tuple[bool, int, List[str]]:
+    """
+    Validate that ALL samples from the dataset are loaded.
+
+    Args:
+        dataset: Loaded EmotionDataset instance
+        config: DatasetConfig with expected sample count
+
+    Returns:
+        Tuple of (is_valid, actual_count, missed_files)
+    """
+    actual_count = len(dataset)
+    missed_files = []
+
+    # Scan all directories to find any missed files
+    data_dir = Path(dataset.data_dir)
+    loaded_paths = {s["audio_path"] for s in dataset.samples}
+
+    audio_extensions = [".wav", ".mp3", ".flac", ".m4a"]
+
+    for emotion_folder in config.emotion_mapping.keys():
+        emotion_dir = data_dir / emotion_folder
+        if not emotion_dir.exists():
+            continue
+
+        for ext in audio_extensions:
+            for audio_file in emotion_dir.glob(f"*{ext}"):
+                if str(audio_file) not in loaded_paths:
+                    missed_files.append(str(audio_file))
+
+    # Check against expected count (allow 5% tolerance for missing files)
+    tolerance = 0.05
+    min_expected = int(config.expected_samples * (1 - tolerance))
+    is_valid = actual_count >= min_expected and len(missed_files) == 0
+
+    return is_valid, actual_count, missed_files
+
+
+def get_emotion_distribution(dataset: "EmotionDataset") -> Dict[str, int]:
+    """Get distribution of emotions in dataset."""
+    distribution = defaultdict(int)
+    for sample in dataset.samples:
+        distribution[sample["emotion"]] += 1
+    return dict(distribution)
+
+
 class EmotionDataset(Dataset):
     """
     Dataset for emotion-labeled audio (RAVDESS, CREMA-D, or custom).
@@ -66,6 +235,7 @@ class EmotionDataset(Dataset):
         language_id: str = "en",
         max_audio_length: float = 10.0,
         sample_rate: int = S3GEN_SR,
+        dataset_source: str = "unknown",
     ):
         """
         Args:
@@ -75,6 +245,7 @@ class EmotionDataset(Dataset):
             language_id: Language code for text tokenization (default: "en" for English)
             max_audio_length: Maximum audio length in seconds
             sample_rate: Target sample rate
+            dataset_source: Name of the source dataset (ravdess, cremad, iesc, etc.)
         """
         self.data_dir = Path(data_dir)
         self.tokenizer = tokenizer
@@ -82,11 +253,12 @@ class EmotionDataset(Dataset):
         self.language_id = language_id
         self.max_audio_length = max_audio_length
         self.sample_rate = sample_rate
+        self.dataset_source = dataset_source
 
         # Load data samples
         self.samples = self._load_samples()
 
-        print(f"Loaded {len(self.samples)} samples from {data_dir}")
+        print(f"Loaded {len(self.samples)} samples from {data_dir} (source: {dataset_source})")
     
     def _load_samples(self) -> List[Dict]:
         """Load all audio samples with their emotion labels."""
@@ -108,13 +280,18 @@ class EmotionDataset(Dataset):
                 # Try to extract text from filename or metadata
                 # Format: "text_emotion.wav" or use metadata
                 text = self._extract_text_from_filename(audio_file)
-                
+
                 samples.append({
                     "audio_path": str(audio_file),
                     "emotion": emotion_type,
                     "text": text,
+                    "metadata": {
+                        "source": self.dataset_source,
+                        "emotion_folder": emotion_folder,
+                        "filename": audio_file.name,
+                    }
                 })
-        
+
         return samples
     
     def _extract_text_from_filename(self, audio_file: Path) -> str:
@@ -175,6 +352,131 @@ class EmotionDataset(Dataset):
             "emotion": sample["emotion"],
             "text": sample["text"],
         }
+
+
+# =============================================================================
+# Balanced Sampling
+# =============================================================================
+
+class BalancedEmotionSampler(torch.utils.data.Sampler):
+    """
+    Balanced sampler that ensures equal representation of each emotion.
+
+    For imbalanced datasets, this prevents the model from overfitting
+    to dominant emotions by oversampling minority classes.
+    """
+
+    def __init__(self, dataset: EmotionDataset, replacement: bool = True):
+        """
+        Args:
+            dataset: EmotionDataset instance
+            replacement: Whether to sample with replacement (default: True)
+        """
+        self.dataset = dataset
+        self.replacement = replacement
+
+        # Group samples by emotion
+        self.emotion_indices = defaultdict(list)
+        for idx, sample in enumerate(dataset.samples):
+            self.emotion_indices[sample["emotion"]].append(idx)
+
+        self.emotions = list(self.emotion_indices.keys())
+        self.num_emotions = len(self.emotions)
+
+        # Target samples per epoch: max emotion count * num_emotions
+        self.max_per_emotion = max(len(indices) for indices in self.emotion_indices.values())
+        self.total_samples = self.max_per_emotion * self.num_emotions
+
+        print(f"BalancedSampler: {self.num_emotions} emotions, "
+              f"max {self.max_per_emotion} per emotion, "
+              f"{self.total_samples} samples per epoch")
+
+    def __iter__(self):
+        indices = []
+
+        for emotion in self.emotions:
+            emotion_indices = self.emotion_indices[emotion]
+
+            if self.replacement:
+                # Oversample to match max_per_emotion
+                sampled = np.random.choice(
+                    emotion_indices,
+                    size=self.max_per_emotion,
+                    replace=True
+                )
+            else:
+                # Use all available, repeat if needed
+                repeats = self.max_per_emotion // len(emotion_indices) + 1
+                sampled = (emotion_indices * repeats)[:self.max_per_emotion]
+                np.random.shuffle(sampled)
+
+            indices.extend(sampled)
+
+        np.random.shuffle(indices)
+        return iter(indices)
+
+    def __len__(self):
+        return self.total_samples
+
+
+class DatasetWeightedSampler(torch.utils.data.Sampler):
+    """
+    Sampler that balances across multiple datasets.
+
+    For combined training with RAVDESS + CREMA-D + IESC,
+    ensures each dataset contributes equally despite size differences.
+    """
+
+    def __init__(
+        self,
+        dataset: EmotionDataset,
+        dataset_weights: Optional[Dict[str, float]] = None,
+    ):
+        """
+        Args:
+            dataset: EmotionDataset with samples containing metadata.source
+            dataset_weights: Optional custom weights per dataset
+        """
+        self.dataset = dataset
+
+        # Group by source dataset
+        self.source_indices = defaultdict(list)
+        for idx, sample in enumerate(dataset.samples):
+            source = sample.get("metadata", {}).get("source", "unknown")
+            self.source_indices[source].append(idx)
+
+        # Default weights: equal contribution
+        if dataset_weights is None:
+            dataset_weights = {k: 1.0 for k in self.source_indices.keys()}
+
+        self.weights = dataset_weights
+        self.sources = list(self.source_indices.keys())
+
+        # Calculate samples per epoch (equal from each source)
+        self.min_samples = min(len(indices) for indices in self.source_indices.values())
+        self.total_samples = self.min_samples * len(self.sources)
+
+        print(f"DatasetWeightedSampler: {len(self.sources)} sources, "
+              f"{self.total_samples} samples per epoch")
+
+    def __iter__(self):
+        indices = []
+
+        for source in self.sources:
+            source_indices = self.source_indices[source]
+            # Sample equally from each source
+            sampled = np.random.choice(
+                source_indices,
+                size=self.min_samples,
+                replace=len(source_indices) < self.min_samples
+            )
+            indices.extend(sampled)
+
+        np.random.shuffle(indices)
+        return iter(indices)
+
+    def __len__(self):
+        return self.total_samples
 
 
 def download_hindi_emotion_data(output_dir: str = "data/hindi_emotions"):
@@ -558,11 +860,48 @@ def train_step(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Fine-tune T3 model with LoRA/Adapter for emotions")
-    parser.add_argument("--data_dir", type=str, default="data/combined_emotions",
-                       help="Directory containing emotion-labeled audio")
-    parser.add_argument("--output_dir", type=str, default="checkpoints/emotion_lora",
-                       help="Output directory for checkpoints")
+    parser = argparse.ArgumentParser(
+        description="Fine-tune T3 model with LoRA/Adapter for emotions",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Train on RAVDESS dataset only
+  python train_emotion_lora.py --dataset ravdess --output_dir checkpoints/emotion_lora_ravdess
+
+  # Train on CREMA-D dataset only
+  python train_emotion_lora.py --dataset cremad --output_dir checkpoints/emotion_lora_cremad
+
+  # Train on IESC (Hindi) dataset only
+  python train_emotion_lora.py --dataset iesc --output_dir checkpoints/emotion_lora_iesc
+
+  # Train on combined datasets with balanced sampling
+  python train_emotion_lora.py --dataset combined --balanced_sampling --output_dir checkpoints/emotion_lora_combined
+
+  # Use custom data directory
+  python train_emotion_lora.py --dataset ravdess --data_dir /path/to/ravdess --output_dir checkpoints/emotion_lora_ravdess
+        """
+    )
+
+    # Dataset selection
+    parser.add_argument("--dataset", type=str, default="combined",
+                       choices=["ravdess", "cremad", "iesc", "combined", "custom"],
+                       help="Dataset to train on (default: combined)")
+    parser.add_argument("--data_dir", type=str, default=None,
+                       help="Custom data directory (overrides dataset default)")
+
+    # Per-dataset directories for combined training
+    parser.add_argument("--ravdess_dir", type=str, default=None,
+                       help="RAVDESS data directory (for combined training)")
+    parser.add_argument("--cremad_dir", type=str, default=None,
+                       help="CREMA-D data directory (for combined training)")
+    parser.add_argument("--iesc_dir", type=str, default=None,
+                       help="IESC data directory (for combined training)")
+
+    # Output
+    parser.add_argument("--output_dir", type=str, default=None,
+                       help="Output directory for checkpoints (auto-generated if not specified)")
+
+    # Device and model settings
     parser.add_argument("--device", type=str, default="auto",
                        help="Device (auto, cuda, mps, cpu)")
     parser.add_argument("--lora_rank", type=int, default=8,
@@ -573,22 +912,55 @@ def main():
                        help="Use adapters instead of LoRA")
     parser.add_argument("--adapter_size", type=int, default=64,
                        help="Adapter bottleneck size")
+
+    # Training hyperparameters
     parser.add_argument("--batch_size", type=int, default=4,
                        help="Batch size")
     parser.add_argument("--epochs", type=int, default=10,
                        help="Number of epochs")
     parser.add_argument("--lr", type=float, default=1e-4,
                        help="Learning rate")
-    parser.add_argument("--download_data", action="store_true",
-                       help="Download/setup data directory")
-    parser.add_argument("--language", type=str, default="en",
-                       help="Language code for text tokenization (en, hi, etc.)")
+
+    # Sampling strategy
+    parser.add_argument("--balanced_sampling", action="store_true",
+                       help="Use balanced emotion sampling (recommended for imbalanced datasets)")
+    parser.add_argument("--balanced_datasets", action="store_true",
+                       help="Balance across datasets in combined mode")
+
+    # Language (auto-detected for specific datasets)
+    parser.add_argument("--language", type=str, default=None,
+                       help="Language code (en, hi, etc.). Auto-detected if not specified")
+
+    # Early stopping
     parser.add_argument("--early_stop_loss", type=float, default=0.4,
                        help="Stop training when average loss falls below this threshold")
     parser.add_argument("--early_stop_patience", type=int, default=50,
                        help="Number of consecutive batches below threshold before stopping")
-    
+
+    # Validation
+    parser.add_argument("--validate_data", action="store_true", default=True,
+                       help="Validate that all expected samples are loaded (default: True)")
+    parser.add_argument("--skip_validation", action="store_true",
+                       help="Skip data validation")
+
+    # Misc
+    parser.add_argument("--download_data", action="store_true",
+                       help="Download/setup data directory")
+
     args = parser.parse_args()
+
+    # Auto-generate output directory based on dataset
+    if args.output_dir is None:
+        args.output_dir = f"checkpoints/emotion_lora_{args.dataset}"
+        print(f"Auto-generated output directory: {args.output_dir}")
+
+    # Auto-detect language for specific datasets
+    if args.language is None:
+        if args.dataset == "iesc":
+            args.language = "hi"
+        else:
+            args.language = "en"
+        print(f"Auto-detected language: {args.language}")
     
     # Setup device
     if args.device == "auto":
@@ -605,15 +977,32 @@ def main():
     
     # Download/setup data
     if args.download_data:
-        download_hindi_emotion_data(args.data_dir)
+        download_hindi_emotion_data(args.data_dir or "data/hindi_emotions")
         print("\nPlease add your Hindi emotion audio files to the data directory")
         print("Then run the script again without --download_data")
         return
-    
+
+    # Initialize training log
+    training_log = TrainingLog(
+        dataset_name=args.dataset,
+        start_time=datetime.now().isoformat(),
+        config={
+            "lora_rank": args.lora_rank,
+            "lora_alpha": args.lora_alpha,
+            "batch_size": args.batch_size,
+            "epochs": args.epochs,
+            "lr": args.lr,
+            "language": args.language,
+            "early_stop_loss": args.early_stop_loss,
+            "early_stop_patience": args.early_stop_patience,
+            "balanced_sampling": args.balanced_sampling,
+        }
+    )
+
     # Load model
     print("Loading model...")
     model = ChatterboxMultilingualTTS.from_pretrained(device=device)
-    
+
     # Apply LoRA/Adapter
     model = setup_model_with_lora(
         model,
@@ -627,42 +1016,165 @@ def main():
     model.s3gen.to(device)
     model.ve.to(device)
     model.emotion_embeddings.to(device)
-    
-    # Setup dataset
-    # Combined RAVDESS + CREMA-D emotions
-    emotion_mapping = {
-        "emotion_angry": "angry",
-        "emotion_calm": "calm",
-        "emotion_disgusted": "disgusted",
-        "emotion_fearful": "fearful",
-        "emotion_happy": "happy",
-        "emotion_neutral": "neutral",
-        "emotion_sad": "sad",
-        "emotion_surprised": "surprised",
-        # Additional emotions (not in RAVDESS/CREMA-D but supported)
-        "emotion_excited": "excited",
-        "emotion_whisper": "whisper",
-        "emotion_shout": "shout",
-    }
 
-    dataset = EmotionDataset(
-        data_dir=args.data_dir,
-        tokenizer=model.tokenizer,
-        emotion_mapping=emotion_mapping,
-        language_id=args.language,
-    )
-    
+    # ==========================================================================
+    # Dataset Setup
+    # ==========================================================================
+    print(f"\n{'='*60}")
+    print(f"Setting up dataset: {args.dataset}")
+    print(f"{'='*60}")
+
+    if args.dataset in DATASET_CONFIGS:
+        # Use predefined dataset config
+        config = DATASET_CONFIGS[args.dataset]
+        data_dir = args.data_dir or config.default_path
+        emotion_mapping = config.emotion_mapping
+        expected_samples = config.expected_samples
+        training_log.expected_samples = expected_samples
+
+        print(f"Dataset: {config.description}")
+        print(f"Data directory: {data_dir}")
+        print(f"Expected samples: {expected_samples}")
+        print(f"Emotions: {config.unique_emotions}")
+
+        dataset = EmotionDataset(
+            data_dir=data_dir,
+            tokenizer=model.tokenizer,
+            emotion_mapping=emotion_mapping,
+            language_id=args.language,
+            dataset_source=args.dataset,
+        )
+
+    elif args.dataset == "combined":
+        # Combined dataset from all sources
+        print("Loading combined dataset from all sources...")
+        all_samples = []
+
+        for ds_name, ds_config in DATASET_CONFIGS.items():
+            # Check for custom directory override
+            custom_dir = getattr(args, f"{ds_name}_dir", None)
+            ds_dir = custom_dir or ds_config.default_path
+
+            if not Path(ds_dir).exists():
+                print(f"  Warning: {ds_name} directory not found at {ds_dir}, skipping")
+                continue
+
+            print(f"  Loading {ds_name} from {ds_dir}...")
+            ds = EmotionDataset(
+                data_dir=ds_dir,
+                tokenizer=model.tokenizer,
+                emotion_mapping=ds_config.emotion_mapping,
+                language_id=ds_config.language,
+                dataset_source=ds_name,
+            )
+            print(f"    Loaded {len(ds.samples)} samples")
+            all_samples.extend(ds.samples)
+
+        if len(all_samples) == 0:
+            print("Error: No data found for combined dataset")
+            return
+
+        # Create combined dataset
+        combined_emotion_mapping = COMBINED_EMOTION_MAPPING
+        dataset = EmotionDataset(
+            data_dir=Path(DATASET_CONFIGS["ravdess"].default_path).parent,  # Use parent dir
+            tokenizer=model.tokenizer,
+            emotion_mapping=combined_emotion_mapping,
+            language_id="en",  # Default to English for combined
+            dataset_source="combined",
+        )
+        # Override samples with combined list
+        dataset.samples = all_samples
+
+        print(f"Combined dataset: {len(dataset.samples)} total samples")
+        expected_samples = sum(c.expected_samples for c in DATASET_CONFIGS.values())
+        training_log.expected_samples = expected_samples
+
+        # Use per-dataset config as None for validation
+        config = None
+
+    else:  # custom
+        # Custom dataset with user-provided directory
+        if args.data_dir is None:
+            print("Error: --data_dir required for custom dataset")
+            return
+
+        emotion_mapping = COMBINED_EMOTION_MAPPING
+        dataset = EmotionDataset(
+            data_dir=args.data_dir,
+            tokenizer=model.tokenizer,
+            emotion_mapping=emotion_mapping,
+            language_id=args.language,
+            dataset_source="custom",
+        )
+        config = None
+        expected_samples = 0
+
     if len(dataset) == 0:
-        print(f"Error: No data found in {args.data_dir}")
+        print(f"Error: No data found")
         print("Run with --download_data to setup data directory structure")
         return
-    
-    dataloader = DataLoader(
-        dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=0,  # Set to 0 for Mac compatibility
-    )
+
+    training_log.samples_loaded = len(dataset)
+    training_log.total_samples = len(dataset)
+
+    # ==========================================================================
+    # Data Validation
+    # ==========================================================================
+    if not args.skip_validation and config is not None:
+        print(f"\nValidating dataset coverage...")
+        is_valid, actual_count, missed_files = validate_dataset_coverage(dataset, config)
+
+        training_log.missed_files = missed_files
+
+        if missed_files:
+            print(f"  WARNING: {len(missed_files)} files were not loaded:")
+            for f in missed_files[:10]:  # Show first 10
+                print(f"    - {f}")
+            if len(missed_files) > 10:
+                print(f"    ... and {len(missed_files) - 10} more")
+
+        if is_valid:
+            print(f"  ✓ Validation PASSED: {actual_count}/{config.expected_samples} samples loaded")
+        else:
+            print(f"  ✗ Validation FAILED: Expected ~{config.expected_samples}, got {actual_count}")
+            print(f"  Consider checking data directory structure")
+
+    # Get emotion distribution
+    emotion_dist = get_emotion_distribution(dataset)
+    training_log.emotion_distribution = emotion_dist
+    print(f"\nEmotion distribution:")
+    for emotion, count in sorted(emotion_dist.items()):
+        print(f"  {emotion}: {count}")
+
+    # ==========================================================================
+    # DataLoader Setup
+    # ==========================================================================
+    if args.balanced_sampling:
+        print("\nUsing balanced emotion sampling...")
+        sampler = BalancedEmotionSampler(dataset)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=args.batch_size,
+            sampler=sampler,
+            num_workers=0,
+        )
+    elif args.balanced_datasets and args.dataset == "combined":
+        print("\nUsing dataset-balanced sampling...")
+        sampler = DatasetWeightedSampler(dataset)
+        dataloader = DataLoader(
+            dataset,
+            batch_size=args.batch_size,
+            sampler=sampler,
+            num_workers=0,
+        )
+    else:
+        dataloader = DataLoader(
+            dataset,
+            batch_size=args.batch_size,
+            shuffle=True,
+            num_workers=0,
+        )
     
     # Setup optimizer (only train LoRA/Adapter parameters)
     trainable_params = []
@@ -690,8 +1202,12 @@ def main():
     optimizer = torch.optim.AdamW(trainable_params, lr=args.lr, weight_decay=1e-5)
     
     # Training loop
-    print(f"\nStarting training for {args.epochs} epochs...")
+    print(f"\n{'='*60}")
+    print(f"Starting training for {args.epochs} epochs...")
+    print(f"Dataset: {args.dataset} ({len(dataset)} samples)")
     print(f"Early stopping: loss < {args.early_stop_loss} for {args.early_stop_patience} consecutive batches")
+    print(f"{'='*60}")
+
     output_path = Path(args.output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
@@ -705,6 +1221,7 @@ def main():
 
         total_loss = 0.0
         valid_batches = 0
+        epoch_batch_losses = []
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{args.epochs}")
 
         for batch_idx, batch in enumerate(progress_bar):
@@ -713,6 +1230,8 @@ def main():
                 if loss > 0.0:  # Only count valid losses
                     total_loss += loss
                     valid_batches += 1
+                    epoch_batch_losses.append(loss)
+                    training_log.batch_losses.append(loss)
 
                     # Early stopping check
                     if loss < args.early_stop_loss:
@@ -720,6 +1239,7 @@ def main():
                         if early_stop_counter >= args.early_stop_patience:
                             print(f"\n\nEarly stopping triggered! Loss {loss:.4f} < {args.early_stop_loss} for {args.early_stop_patience} consecutive batches")
                             early_stopped = True
+                            training_log.early_stopped = True
                             break
                     else:
                         early_stop_counter = 0  # Reset counter
@@ -738,20 +1258,26 @@ def main():
 
         if valid_batches > 0:
             avg_loss = total_loss / valid_batches
+            training_log.epoch_losses.append(avg_loss)
+            training_log.final_loss = avg_loss
             print(f"\nEpoch {epoch+1} - Average Loss: {avg_loss:.4f} (from {valid_batches}/{len(dataloader)} batches)")
         else:
             print(f"\nEpoch {epoch+1} - No valid batches processed!")
             print("Check data loading and tokenization")
             continue
 
+        training_log.epochs_completed = epoch + 1
+
         # Save checkpoint (save individual components)
         checkpoint_path = output_path / f"checkpoint_epoch_{epoch+1}.pt"
         checkpoint = {
             "epoch": epoch + 1,
+            "dataset": args.dataset,
             "t3_state_dict": model.t3.state_dict(),
             "emotion_embeddings_state_dict": model.emotion_embeddings.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
             "loss": avg_loss,
+            "config": training_log.config,
         }
         torch.save(checkpoint, checkpoint_path)
         print(f"Saved checkpoint: {checkpoint_path}")
@@ -762,7 +1288,27 @@ def main():
             torch.save(checkpoint, final_path)
             print(f"Saved early stop checkpoint: {final_path}")
 
-    print("Training complete!")
+    # Save training log
+    training_log.end_time = datetime.now().isoformat()
+    log_path = output_path / "training_log.json"
+    training_log.save(log_path)
+    print(f"\nSaved training log: {log_path}")
+
+    # Print summary
+    print(f"\n{'='*60}")
+    print("Training Complete!")
+    print(f"{'='*60}")
+    print(f"Dataset: {args.dataset}")
+    print(f"Samples loaded: {training_log.samples_loaded}")
+    if training_log.expected_samples > 0:
+        print(f"Expected samples: {training_log.expected_samples}")
+        coverage = (training_log.samples_loaded / training_log.expected_samples) * 100
+        print(f"Coverage: {coverage:.1f}%")
+    print(f"Epochs completed: {training_log.epochs_completed}")
+    print(f"Final loss: {training_log.final_loss:.4f}")
+    print(f"Early stopped: {training_log.early_stopped}")
+    print(f"Checkpoints saved to: {output_path}")
+    print(f"{'='*60}")
 
 
 if __name__ == "__main__":
