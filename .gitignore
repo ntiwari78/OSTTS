@@ -42,7 +42,14 @@ pip-delete-this-directory.txt
 
 syn_out/
 checkpoints/
+checkpoint/
 .gradio
+
+# Data directories
+data/
+gita_audio/
+gita_audio_english/
 
 # Ignore generated sample .wav files
 **/*.wav
+**/*.wave
