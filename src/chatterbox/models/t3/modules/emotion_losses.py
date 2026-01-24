@@ -216,19 +216,11 @@ class SERIntegrationLoss(nn.Module):
         self._ser_model = None
         self._ser_processor = None
         self._model_loaded = False
+        self._debug_printed = False
 
-        # Default mapping from our emotions to common SER model classes
-        # This may need adjustment based on the specific SER model used
-        self.emotion_mapping = emotion_mapping or {
-            "angry": 0,
-            "calm": 1,
-            "disgusted": 2,
-            "fearful": 3,
-            "happy": 4,
-            "neutral": 5,
-            "sad": 6,
-            "surprised": 7,
-        }
+        # Optional mapping from our emotions to SER model classes.
+        # If not provided, we will derive it from the SER model config.
+        self.emotion_mapping = emotion_mapping
 
     def _load_ser_model(self, device: torch.device) -> bool:
         """Lazy load SER model."""
@@ -237,13 +229,19 @@ class SERIntegrationLoss(nn.Module):
 
         try:
             from transformers import (
-                Wav2Vec2ForSequenceClassification,
-                Wav2Vec2Processor,
+                AutoModelForAudioClassification,
+                AutoProcessor,
+                AutoFeatureExtractor,
             )
 
             print(f"Loading SER model: {self.ser_model_name}")
-            self._ser_processor = Wav2Vec2Processor.from_pretrained(self.ser_model_name)
-            self._ser_model = Wav2Vec2ForSequenceClassification.from_pretrained(
+            try:
+                self._ser_processor = AutoProcessor.from_pretrained(self.ser_model_name)
+            except Exception:
+                # Some audio classification models don't ship a tokenizer; use feature extractor
+                self._ser_processor = AutoFeatureExtractor.from_pretrained(self.ser_model_name)
+
+            self._ser_model = AutoModelForAudioClassification.from_pretrained(
                 self.ser_model_name
             ).to(device)
 
@@ -251,6 +249,33 @@ class SERIntegrationLoss(nn.Module):
                 self._ser_model.eval()
                 for param in self._ser_model.parameters():
                     param.requires_grad = False
+
+            # Build emotion mapping from model config if not provided
+            if self.emotion_mapping is None:
+                label2id = getattr(self._ser_model.config, "label2id", {}) or {}
+                if label2id:
+                    self.emotion_mapping = {
+                        str(label).lower(): int(idx) for label, idx in label2id.items()
+                    }
+                else:
+                    # Fallback to common ordering when config doesn't provide labels
+                    self.emotion_mapping = {
+                        "angry": 0,
+                        "calm": 1,
+                        "disgusted": 2,
+                        "fearful": 3,
+                        "happy": 4,
+                        "neutral": 5,
+                        "sad": 6,
+                        "surprised": 7,
+                    }
+            else:
+                # If provided, fill missing labels from model config when possible
+                label2id = getattr(self._ser_model.config, "label2id", {}) or {}
+                for label, idx in label2id.items():
+                    self.emotion_mapping.setdefault(str(label).lower(), int(idx))
+
+            print(f"SER label mapping: {self.emotion_mapping}")
 
             self._model_loaded = True
             print("SER model loaded successfully")
@@ -291,6 +316,13 @@ class SERIntegrationLoss(nn.Module):
                 "ser_accuracy": torch.tensor(0.0, device=device),
             }
 
+        if not self.emotion_mapping:
+            print("Warning: SER emotion mapping is empty. SER loss disabled.")
+            return {
+                "ser_loss": torch.tensor(0.0, device=device),
+                "ser_accuracy": torch.tensor(0.0, device=device),
+            }
+
         # Process audio for SER
         context = torch.no_grad() if self.freeze_ser else torch.enable_grad()
 
@@ -315,8 +347,11 @@ class SERIntegrationLoss(nn.Module):
             if emotion_lower in self.emotion_mapping:
                 target_indices.append(self.emotion_mapping[emotion_lower])
             else:
-                # Default to neutral if unknown
-                target_indices.append(self.emotion_mapping.get("neutral", 5))
+                # Default to neutral if unknown, else first available label
+                fallback = self.emotion_mapping.get("neutral")
+                if fallback is None:
+                    fallback = next(iter(self.emotion_mapping.values()))
+                target_indices.append(fallback)
 
         target_tensor = torch.tensor(target_indices, device=device)
 
@@ -326,6 +361,23 @@ class SERIntegrationLoss(nn.Module):
         # Compute accuracy for monitoring
         predictions = logits.argmax(dim=-1)
         accuracy = (predictions == target_tensor).float().mean()
+
+        if not self._debug_printed:
+            self._debug_printed = True
+            # Log a small sample of targets vs predictions for sanity check
+            target_names = []
+            pred_names = []
+            inv_mapping = {v: k for k, v in self.emotion_mapping.items()}
+            for idx in target_tensor[:8].tolist():
+                target_names.append(inv_mapping.get(idx, str(idx)))
+            for idx in predictions[:8].tolist():
+                pred_names.append(inv_mapping.get(idx, str(idx)))
+            print(
+                "SER debug - targets:",
+                target_names,
+                "predictions:",
+                pred_names,
+            )
 
         return {
             "ser_loss": ser_loss,
