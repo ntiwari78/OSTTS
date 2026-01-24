@@ -1,0 +1,256 @@
+{
+  "timestamp": "2026-01-23T23:57:07.964952",
+  "checkpoint_name": "iesc",
+  "checkpoint_path": "checkpoints/emotion_lora_iesc/checkpoint_epoch_10.pt",
+  "dataset": "IESC",
+  "language": "hi",
+  "device": "cpu",
+  "test_results": {
+    "basic_emotions": [
+      {
+        "test_id": "basic_neutral_1.0",
+        "test_type": "basic",
+        "text": "\u092f\u0939 \u092d\u093e\u0935\u0928\u093e \u0928\u093f\u092f\u0902\u0924\u094d\u0930\u0923 \u0915\u093e \u092a\u0930\u0940\u0915\u094d\u0937\u0923 \u0939\u0948\u0964",
+        "emotion": "neutral",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/basic_neutral_1.0.wav",
+        "duration": 2.44,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.44,
+          "pitch_mean_hz": 153.20238156892356,
+          "pitch_std_hz": 49.71631681328724,
+          "pitch_min_hz": 93.30329915368074,
+          "pitch_max_hz": 246.2288826689832,
+          "energy_mean": 0.10635056346654892,
+          "energy_std": 0.06503436714410782,
+          "energy_max": 0.2183808833360672,
+          "tempo_bpm": 108.17307692307692
+        }
+      },
+      {
+        "test_id": "basic_happy_1.0",
+        "test_type": "basic",
+        "text": "\u092e\u0948\u0902 \u0906\u091c \u0906\u092a\u0938\u0947 \u092e\u093f\u0932\u0915\u0930 \u092c\u0939\u0941\u0924 \u0916\u0941\u0936 \u0939\u0942\u0902!",
+        "emotion": "happy",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/basic_happy_1.0.wav",
+        "duration": 2.44,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.44,
+          "pitch_mean_hz": 198.40352827395589,
+          "pitch_std_hz": 88.17702232895658,
+          "pitch_min_hz": 135.81724438273213,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.09128401428461075,
+          "energy_std": 0.0735931321978569,
+          "energy_max": 0.2550048232078552,
+          "tempo_bpm": 127.8409090909091
+        }
+      },
+      {
+        "test_id": "basic_sad_1.0",
+        "test_type": "basic",
+        "text": "\u092e\u0941\u091d\u0947 \u0907\u0938 \u0916\u092c\u0930 \u0938\u0947 \u092c\u0939\u0941\u0924 \u0926\u0941\u0916 \u0939\u0941\u0906\u0964",
+        "emotion": "sad",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/basic_sad_1.0.wav",
+        "duration": 1.8,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.8,
+          "pitch_mean_hz": 236.5379306007352,
+          "pitch_std_hz": 138.4163892886345,
+          "pitch_min_hz": 121.7003513670591,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.08595208823680878,
+          "energy_std": 0.06325041502714157,
+          "energy_max": 0.20017588138580322,
+          "tempo_bpm": 216.34615384615384
+        }
+      },
+      {
+        "test_id": "basic_angry_1.0",
+        "test_type": "basic",
+        "text": "\u092e\u0948\u0902 \u0905\u092d\u0940 \u092c\u0939\u0941\u0924 \u0917\u0941\u0938\u094d\u0938\u0947 \u092e\u0947\u0902 \u0939\u0942\u0902!",
+        "emotion": "angry",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/basic_angry_1.0.wav",
+        "duration": 1.8,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.8,
+          "pitch_mean_hz": 171.2736446418369,
+          "pitch_std_hz": 97.0074993081393,
+          "pitch_min_hz": 83.60532082885095,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.0930437445640564,
+          "energy_std": 0.07056592404842377,
+          "energy_max": 0.23066399991512299,
+          "tempo_bpm": 127.8409090909091
+        }
+      },
+      {
+        "test_id": "basic_surprised_1.0",
+        "test_type": "basic",
+        "text": "\u0935\u093e\u0939, \u092f\u0939 \u0906\u0936\u094d\u091a\u0930\u094d\u092f\u091c\u0928\u0915 \u0939\u0948!",
+        "emotion": "surprised",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/basic_surprised_1.0.wav",
+        "duration": 4.92,
+        "error": null,
+        "prosody": {
+          "duration_s": 4.92,
+          "pitch_mean_hz": 157.06962013586485,
+          "pitch_std_hz": 53.30239223628849,
+          "pitch_min_hz": 77.55723809168673,
+          "pitch_max_hz": 250.53288772482563,
+          "energy_mean": 0.09818017482757568,
+          "energy_std": 0.09081921726465225,
+          "energy_max": 0.3080253005027771,
+          "tempo_bpm": 122.28260869565217
+        }
+      }
+    ],
+    "intensity_tests": [
+      {
+        "test_id": "intensity_happy_0.0",
+        "test_type": "intensity",
+        "text": "\u092e\u0948\u0902 \u092c\u0939\u0941\u0924 \u0916\u0941\u0936 \u0939\u0942\u0902!",
+        "emotion": "happy",
+        "intensity": 0.0,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/intensity_happy_0.0.wav",
+        "duration": 2.36,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.36,
+          "pitch_mean_hz": 135.34443095584982,
+          "pitch_std_hz": 21.868295443717013,
+          "pitch_min_hz": 105.94630943592954,
+          "pitch_max_hz": 178.17974362806785,
+          "energy_mean": 0.07576380670070648,
+          "energy_std": 0.06935691088438034,
+          "energy_max": 0.2623980939388275,
+          "tempo_bpm": 156.25
+        }
+      },
+      {
+        "test_id": "intensity_happy_0.5",
+        "test_type": "intensity",
+        "text": "\u092e\u0948\u0902 \u092c\u0939\u0941\u0924 \u0916\u0941\u0936 \u0939\u0942\u0902!",
+        "emotion": "happy",
+        "intensity": 0.5,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/intensity_happy_0.5.wav",
+        "duration": 3.16,
+        "error": null,
+        "prosody": {
+          "duration_s": 3.16,
+          "pitch_mean_hz": 169.56543133958994,
+          "pitch_std_hz": 38.93078814033274,
+          "pitch_min_hz": 110.95694720678449,
+          "pitch_max_hz": 235.10958125672175,
+          "energy_mean": 0.0578802227973938,
+          "energy_std": 0.07692670822143555,
+          "energy_max": 0.2614714503288269,
+          "tempo_bpm": 133.92857142857142
+        }
+      },
+      {
+        "test_id": "intensity_happy_1.0",
+        "test_type": "intensity",
+        "text": "\u092e\u0948\u0902 \u092c\u0939\u0941\u0924 \u0916\u0941\u0936 \u0939\u0942\u0902!",
+        "emotion": "happy",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/intensity_happy_1.0.wav",
+        "duration": 1.28,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.28,
+          "pitch_mean_hz": 462.14107874890925,
+          "pitch_std_hz": 0.0,
+          "pitch_min_hz": 462.14107874890925,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.06442952901124954,
+          "energy_std": 0.061987441033124924,
+          "energy_max": 0.20413972437381744,
+          "tempo_bpm": 133.92857142857142
+        }
+      },
+      {
+        "test_id": "intensity_happy_1.5",
+        "test_type": "intensity",
+        "text": "\u092e\u0948\u0902 \u092c\u0939\u0941\u0924 \u0916\u0941\u0936 \u0939\u0942\u0902!",
+        "emotion": "happy",
+        "intensity": 1.5,
+        "status": "success",
+        "file_path": "benchmark_output/iesc/audio/intensity_happy_1.5.wav",
+        "duration": 4.16,
+        "error": null,
+        "prosody": {
+          "duration_s": 4.16,
+          "pitch_mean_hz": 96.2967917548044,
+          "pitch_std_hz": 38.444083125195625,
+          "pitch_min_hz": 50.0,
+          "pitch_max_hz": 164.33806291715806,
+          "energy_mean": 0.0902949646115303,
+          "energy_std": 0.1103743314743042,
+          "energy_max": 0.4363200068473816,
+          "tempo_bpm": 122.28260869565217
+        }
+      }
+    ]
+  },
+  "prosody_analysis": {
+    "neutral": {
+      "pitch_mean": 153.20238156892356,
+      "pitch_std": 49.71631681328724,
+      "energy_mean": 0.10635056346654892,
+      "tempo": 108.17307692307692,
+      "sample_count": 1
+    },
+    "happy": {
+      "pitch_mean": 198.40352827395589,
+      "pitch_std": 88.17702232895658,
+      "energy_mean": 0.09128401428461075,
+      "tempo": 127.8409090909091,
+      "sample_count": 1
+    },
+    "sad": {
+      "pitch_mean": 236.5379306007352,
+      "pitch_std": 138.4163892886345,
+      "energy_mean": 0.08595208823680878,
+      "tempo": 216.34615384615384,
+      "sample_count": 1
+    },
+    "angry": {
+      "pitch_mean": 171.2736446418369,
+      "pitch_std": 97.0074993081393,
+      "energy_mean": 0.0930437445640564,
+      "tempo": 127.8409090909091,
+      "sample_count": 1
+    },
+    "surprised": {
+      "pitch_mean": 157.06962013586485,
+      "pitch_std": 53.30239223628849,
+      "energy_mean": 0.09818017482757568,
+      "tempo": 122.28260869565217,
+      "sample_count": 1
+    }
+  },
+  "summary": {
+    "total_tests": 9,
+    "passed": 9,
+    "failed": 0,
+    "success_rate": 1.0,
+    "average_duration": 2.7066666666666666
+  }
+}

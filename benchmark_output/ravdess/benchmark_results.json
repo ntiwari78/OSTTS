@@ -1,0 +1,763 @@
+{
+  "timestamp": "2026-01-23T23:34:00.871936",
+  "checkpoint_name": "ravdess",
+  "checkpoint_path": "checkpoints/emotion_lora_ravdess/checkpoint_epoch_10.pt",
+  "dataset": "RAVDESS",
+  "language": "en",
+  "device": "cpu",
+  "test_results": {
+    "basic_emotions": [
+      {
+        "test_id": "basic_neutral_1.0",
+        "test_type": "basic",
+        "text": "This is a test of emotion control.",
+        "emotion": "neutral",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_neutral_1.0.wav",
+        "duration": 2.76,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.76,
+          "pitch_mean_hz": 154.5259844968277,
+          "pitch_std_hz": 52.133855116762184,
+          "pitch_min_hz": 94.38743126816934,
+          "pitch_max_hz": 284.4812036394563,
+          "energy_mean": 0.09207266569137573,
+          "energy_std": 0.06743483990430832,
+          "energy_max": 0.26862141489982605,
+          "tempo_bpm": 104.16666666666667
+        }
+      },
+      {
+        "test_id": "basic_happy_1.0",
+        "test_type": "basic",
+        "text": "I am so happy to see you today!",
+        "emotion": "happy",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_happy_1.0.wav",
+        "duration": 4.48,
+        "error": null,
+        "prosody": {
+          "duration_s": 4.48,
+          "pitch_mean_hz": 210.82532825017068,
+          "pitch_std_hz": 103.52520988114912,
+          "pitch_min_hz": 91.70040432046711,
+          "pitch_max_hz": 366.80161728186846,
+          "energy_mean": 0.053033459931612015,
+          "energy_std": 0.0671294629573822,
+          "energy_max": 0.22886978089809418,
+          "tempo_bpm": 122.28260869565217
+        }
+      },
+      {
+        "test_id": "basic_sad_1.0",
+        "test_type": "basic",
+        "text": "I feel really sad about this news.",
+        "emotion": "sad",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_sad_1.0.wav",
+        "duration": 2.72,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.72,
+          "pitch_mean_hz": 140.75982460033447,
+          "pitch_std_hz": 36.17969818863341,
+          "pitch_min_hz": 99.42404238175475,
+          "pitch_max_hz": 219.36499593892518,
+          "energy_mean": 0.07900767028331757,
+          "energy_std": 0.07147236913442612,
+          "energy_max": 0.25415661931037903,
+          "tempo_bpm": 82.72058823529412
+        }
+      },
+      {
+        "test_id": "basic_angry_1.0",
+        "test_type": "basic",
+        "text": "I am absolutely furious right now!",
+        "emotion": "angry",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_angry_1.0.wav",
+        "duration": 1.76,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.76,
+          "pitch_mean_hz": 228.66190345944088,
+          "pitch_std_hz": 152.89892258626608,
+          "pitch_min_hz": 103.52649238413775,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.07210899889469147,
+          "energy_std": 0.05439316853880882,
+          "energy_max": 0.2118871808052063,
+          "tempo_bpm": 156.25
+        }
+      },
+      {
+        "test_id": "basic_fearful_1.0",
+        "test_type": "basic",
+        "text": "I am really scared and worried.",
+        "emotion": "fearful",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_fearful_1.0.wav",
+        "duration": 2.72,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.72,
+          "pitch_mean_hz": 125.40117866395441,
+          "pitch_std_hz": 33.54537527372775,
+          "pitch_min_hz": 75.34933407372878,
+          "pitch_max_hz": 201.15858821357068,
+          "energy_mean": 0.11346539855003357,
+          "energy_std": 0.06290103495121002,
+          "energy_max": 0.21762248873710632,
+          "tempo_bpm": 82.72058823529412
+        }
+      },
+      {
+        "test_id": "basic_surprised_1.0",
+        "test_type": "basic",
+        "text": "Wow, I cannot believe this happened!",
+        "emotion": "surprised",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_surprised_1.0.wav",
+        "duration": 2.16,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.16,
+          "pitch_mean_hz": 181.58614272778138,
+          "pitch_std_hz": 73.0387985785576,
+          "pitch_min_hz": 98.85140203528961,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.11493102461099625,
+          "energy_std": 0.0708613470196724,
+          "energy_max": 0.22791332006454468,
+          "tempo_bpm": 108.17307692307692
+        }
+      },
+      {
+        "test_id": "basic_calm_1.0",
+        "test_type": "basic",
+        "text": "I feel calm and peaceful right now.",
+        "emotion": "calm",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_calm_1.0.wav",
+        "duration": 2.04,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.04,
+          "pitch_mean_hz": 129.22574153705452,
+          "pitch_std_hz": 45.036216631076826,
+          "pitch_min_hz": 57.10411696553857,
+          "pitch_max_hz": 209.4588245641254,
+          "energy_mean": 0.08099601417779922,
+          "energy_std": 0.053310148417949677,
+          "energy_max": 0.19689500331878662,
+          "tempo_bpm": 100.44642857142857
+        }
+      },
+      {
+        "test_id": "basic_disgusted_1.0",
+        "test_type": "basic",
+        "text": "This is absolutely disgusting!",
+        "emotion": "disgusted",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_disgusted_1.0.wav",
+        "duration": 2.48,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.48,
+          "pitch_mean_hz": 183.85294321711365,
+          "pitch_std_hz": 47.41677844029119,
+          "pitch_min_hz": 123.82763603774404,
+          "pitch_max_hz": 312.0260904053494,
+          "energy_mean": 0.1110275611281395,
+          "energy_std": 0.07494688779115677,
+          "energy_max": 0.28307104110717773,
+          "tempo_bpm": 148.02631578947367
+        }
+      },
+      {
+        "test_id": "basic_excited_1.0",
+        "test_type": "basic",
+        "text": "I am so excited about this opportunity!",
+        "emotion": "excited",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/basic_excited_1.0.wav",
+        "duration": 2.96,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.96,
+          "pitch_mean_hz": 145.53416336565078,
+          "pitch_std_hz": 37.01396345062228,
+          "pitch_min_hz": 105.94630943592954,
+          "pitch_max_hz": 266.96797083400685,
+          "energy_mean": 0.0948314517736435,
+          "energy_std": 0.07134487479925156,
+          "energy_max": 0.2313556671142578,
+          "tempo_bpm": 78.125
+        }
+      }
+    ],
+    "intensity_tests": [
+      {
+        "test_id": "intensity_happy_0.0",
+        "test_type": "intensity",
+        "text": "I am really happy about this!",
+        "emotion": "happy",
+        "intensity": 0.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_happy_0.0.wav",
+        "duration": 1.96,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.96,
+          "pitch_mean_hz": 143.27187300446613,
+          "pitch_std_hz": 41.09741215384461,
+          "pitch_min_hz": 101.74796921026864,
+          "pitch_max_hz": 224.49240966187455,
+          "energy_mean": 0.08330361545085907,
+          "energy_std": 0.0716429278254509,
+          "energy_max": 0.19894233345985413,
+          "tempo_bpm": 76.01351351351352
+        }
+      },
+      {
+        "test_id": "intensity_happy_0.5",
+        "test_type": "intensity",
+        "text": "I am really happy about this!",
+        "emotion": "happy",
+        "intensity": 0.5,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_happy_0.5.wav",
+        "duration": 1.84,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.84,
+          "pitch_mean_hz": 163.11325413526077,
+          "pitch_std_hz": 65.84997780949256,
+          "pitch_min_hz": 92.76591169413095,
+          "pitch_max_hz": 289.4538474880756,
+          "energy_mean": 0.07885459065437317,
+          "energy_std": 0.07318410277366638,
+          "energy_max": 0.20741626620292664,
+          "tempo_bpm": 93.75
+        }
+      },
+      {
+        "test_id": "intensity_happy_1.0",
+        "test_type": "intensity",
+        "text": "I am really happy about this!",
+        "emotion": "happy",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_happy_1.0.wav",
+        "duration": 1.68,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.68,
+          "pitch_mean_hz": 121.64165409833524,
+          "pitch_std_hz": 16.078843922761518,
+          "pitch_min_hz": 93.30329915368074,
+          "pitch_max_hz": 161.5148333600084,
+          "energy_mean": 0.09145490825176239,
+          "energy_std": 0.07267039269208908,
+          "energy_max": 0.2276923805475235,
+          "tempo_bpm": 82.72058823529412
+        }
+      },
+      {
+        "test_id": "intensity_happy_1.5",
+        "test_type": "intensity",
+        "text": "I am really happy about this!",
+        "emotion": "happy",
+        "intensity": 1.5,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_happy_1.5.wav",
+        "duration": 1.6,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.6,
+          "pitch_mean_hz": 169.2386273552119,
+          "pitch_std_hz": 92.54310578569712,
+          "pitch_min_hz": 116.87772485612456,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.14063382148742676,
+          "energy_std": 0.07351379841566086,
+          "energy_max": 0.23639844357967377,
+          "tempo_bpm": 140.625
+        }
+      },
+      {
+        "test_id": "intensity_angry_0.0",
+        "test_type": "intensity",
+        "text": "I am absolutely furious!",
+        "emotion": "angry",
+        "intensity": 0.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_angry_0.0.wav",
+        "duration": 2.72,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.72,
+          "pitch_mean_hz": 184.71410672113873,
+          "pitch_std_hz": 53.00741162239118,
+          "pitch_min_hz": 100.57929410678534,
+          "pitch_max_hz": 289.4538474880756,
+          "energy_mean": 0.08976677060127258,
+          "energy_std": 0.06451613456010818,
+          "energy_max": 0.2238893359899521,
+          "tempo_bpm": 216.34615384615384
+        }
+      },
+      {
+        "test_id": "intensity_angry_0.5",
+        "test_type": "intensity",
+        "text": "I am absolutely furious!",
+        "emotion": "angry",
+        "intensity": 0.5,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_angry_0.5.wav",
+        "duration": 2.68,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.68,
+          "pitch_mean_hz": 143.04570063978997,
+          "pitch_std_hz": 71.18627481832763,
+          "pitch_min_hz": 106.56005016284841,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.08060033619403839,
+          "energy_std": 0.07065612822771072,
+          "energy_max": 0.21374842524528503,
+          "tempo_bpm": 100.44642857142857
+        }
+      },
+      {
+        "test_id": "intensity_angry_1.0",
+        "test_type": "intensity",
+        "text": "I am absolutely furious!",
+        "emotion": "angry",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_angry_1.0.wav",
+        "duration": 2.84,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.84,
+          "pitch_mean_hz": 156.02947653053283,
+          "pitch_std_hz": 35.24163561088848,
+          "pitch_min_hz": 88.57675191023606,
+          "pitch_max_hz": 213.12010032569688,
+          "energy_mean": 0.09406747668981552,
+          "energy_std": 0.07513324916362762,
+          "energy_max": 0.21152079105377197,
+          "tempo_bpm": 175.78125
+        }
+      },
+      {
+        "test_id": "intensity_angry_1.5",
+        "test_type": "intensity",
+        "text": "I am absolutely furious!",
+        "emotion": "angry",
+        "intensity": 1.5,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_angry_1.5.wav",
+        "duration": 3.2,
+        "error": null,
+        "prosody": {
+          "duration_s": 3.2,
+          "pitch_mean_hz": 143.70838927021634,
+          "pitch_std_hz": 30.164228877109853,
+          "pitch_min_hz": 91.17224885582168,
+          "pitch_max_hz": 186.60659830736148,
+          "energy_mean": 0.05792604014277458,
+          "energy_std": 0.05654472857713699,
+          "energy_max": 0.20891910791397095,
+          "tempo_bpm": 148.02631578947367
+        }
+      },
+      {
+        "test_id": "intensity_sad_0.0",
+        "test_type": "intensity",
+        "text": "I feel so sad today.",
+        "emotion": "sad",
+        "intensity": 0.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_sad_0.0.wav",
+        "duration": 3.2,
+        "error": null,
+        "prosody": {
+          "duration_s": 3.2,
+          "pitch_mean_hz": 173.03309977982283,
+          "pitch_std_hz": 27.703309559998278,
+          "pitch_min_hz": 125.26644386241279,
+          "pitch_max_hz": 244.81070866093103,
+          "energy_mean": 0.10342685878276825,
+          "energy_std": 0.07246016710996628,
+          "energy_max": 0.23408883810043335,
+          "tempo_bpm": 133.92857142857142
+        }
+      },
+      {
+        "test_id": "intensity_sad_0.5",
+        "test_type": "intensity",
+        "text": "I feel so sad today.",
+        "emotion": "sad",
+        "intensity": 0.5,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_sad_0.5.wav",
+        "duration": 1.48,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.48,
+          "pitch_mean_hz": 182.2367882928449,
+          "pitch_std_hz": 123.14065249848589,
+          "pitch_min_hz": 94.38743126816934,
+          "pitch_max_hz": 462.14107874890925,
+          "energy_mean": 0.09150902181863785,
+          "energy_std": 0.06753075122833252,
+          "energy_max": 0.20398980379104614,
+          "tempo_bpm": 117.1875
+        }
+      },
+      {
+        "test_id": "intensity_sad_1.0",
+        "test_type": "intensity",
+        "text": "I feel so sad today.",
+        "emotion": "sad",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_sad_1.0.wav",
+        "duration": 2.2,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.2,
+          "pitch_mean_hz": 150.25481722104394,
+          "pitch_std_hz": 62.14818170865634,
+          "pitch_min_hz": 67.90862219136606,
+          "pitch_max_hz": 273.20805135087915,
+          "energy_mean": 0.07135918736457825,
+          "energy_std": 0.0690394937992096,
+          "energy_max": 0.23045001924037933,
+          "tempo_bpm": 133.92857142857142
+        }
+      },
+      {
+        "test_id": "intensity_sad_1.5",
+        "test_type": "intensity",
+        "text": "I feel so sad today.",
+        "emotion": "sad",
+        "intensity": 1.5,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/intensity_sad_1.5.wav",
+        "duration": 2.84,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.84,
+          "pitch_mean_hz": 149.38770814949854,
+          "pitch_std_hz": 40.78003217955549,
+          "pitch_min_hz": 80.29228818633764,
+          "pitch_max_hz": 240.60500721642333,
+          "energy_mean": 0.09482695907354355,
+          "energy_std": 0.0705254003405571,
+          "energy_max": 0.25183287262916565,
+          "tempo_bpm": 112.5
+        }
+      }
+    ],
+    "new_emotions": [
+      {
+        "test_id": "new_sarcastic_1.0",
+        "test_type": "new_emotion",
+        "text": "Oh, how fascinating. Really.",
+        "emotion": "sarcastic",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/new_sarcastic_1.0.wav",
+        "duration": 2.16,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.16,
+          "pitch_mean_hz": 173.97644233274605,
+          "pitch_std_hz": 49.98035937003385,
+          "pitch_min_hz": 101.74796921026864,
+          "pitch_max_hz": 259.3679109302019,
+          "energy_mean": 0.1063646674156189,
+          "energy_std": 0.09048634767532349,
+          "energy_max": 0.2827989161014557,
+          "tempo_bpm": 85.22727272727273
+        }
+      },
+      {
+        "test_id": "new_bored_1.0",
+        "test_type": "new_emotion",
+        "text": "I suppose this is interesting.",
+        "emotion": "bored",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/new_bored_1.0.wav",
+        "duration": 1.48,
+        "error": null,
+        "prosody": {
+          "duration_s": 1.48,
+          "pitch_mean_hz": 128.86507378580194,
+          "pitch_std_hz": 71.79655455376158,
+          "pitch_min_hz": 50.0,
+          "pitch_max_hz": 254.91212546385245,
+          "energy_mean": 0.07511293888092041,
+          "energy_std": 0.0581556111574173,
+          "energy_max": 0.17322297394275665,
+          "tempo_bpm": 76.01351351351352
+        }
+      },
+      {
+        "test_id": "new_affectionate_1.0",
+        "test_type": "new_emotion",
+        "text": "I care about you so much, darling.",
+        "emotion": "affectionate",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/new_affectionate_1.0.wav",
+        "duration": 2.76,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.76,
+          "pitch_mean_hz": 142.8068136224688,
+          "pitch_std_hz": 40.530919895299874,
+          "pitch_min_hz": 77.11054127039704,
+          "pitch_max_hz": 227.10088581417543,
+          "energy_mean": 0.11097092181444168,
+          "energy_std": 0.08048972487449646,
+          "energy_max": 0.2642296850681305,
+          "tempo_bpm": 122.28260869565217
+        }
+      },
+      {
+        "test_id": "new_contemptuous_1.0",
+        "test_type": "new_emotion",
+        "text": "How utterly predictable of you.",
+        "emotion": "contemptuous",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/new_contemptuous_1.0.wav",
+        "duration": 3.8,
+        "error": null,
+        "prosody": {
+          "duration_s": 3.8,
+          "pitch_mean_hz": 154.9833113501169,
+          "pitch_std_hz": 45.02268041503279,
+          "pitch_min_hz": 90.12504626108301,
+          "pitch_max_hz": 257.8740616879158,
+          "energy_mean": 0.10865050554275513,
+          "energy_std": 0.07024316489696503,
+          "energy_max": 0.23021909594535828,
+          "tempo_bpm": 140.625
+        }
+      },
+      {
+        "test_id": "new_awed_1.0",
+        "test_type": "new_emotion",
+        "text": "This is absolutely magnificent!",
+        "emotion": "awed",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/new_awed_1.0.wav",
+        "duration": 2.68,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.68,
+          "pitch_mean_hz": 172.42210673936725,
+          "pitch_std_hz": 22.056893190924402,
+          "pitch_min_hz": 120.99940892192926,
+          "pitch_max_hz": 210.67220719096719,
+          "energy_mean": 0.11055383831262589,
+          "energy_std": 0.08337987214326859,
+          "energy_max": 0.2783040404319763,
+          "tempo_bpm": 112.5
+        }
+      }
+    ],
+    "transition_tests": [
+      {
+        "test_id": "transition_neutral_happy",
+        "test_type": "transition",
+        "text": "I started feeling neutral, then became happy!",
+        "emotion": "neutral->happy",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/transition_neutral_happy.wav",
+        "duration": 2.8,
+        "error": null,
+        "prosody": {
+          "duration_s": 2.8,
+          "pitch_mean_hz": 122.73265367579681,
+          "pitch_std_hz": 23.331375201523073,
+          "pitch_min_hz": 89.60596419119524,
+          "pitch_max_hz": 192.07458901020084,
+          "energy_mean": 0.08619912713766098,
+          "energy_std": 0.06438985466957092,
+          "energy_max": 0.22405798733234406,
+          "tempo_bpm": 127.8409090909091
+        }
+      },
+      {
+        "test_id": "transition_sad_happy",
+        "test_type": "transition",
+        "text": "Though I was sad, I'm feeling hopeful now.",
+        "emotion": "sad->happy",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/transition_sad_happy.wav",
+        "duration": 3.12,
+        "error": null,
+        "prosody": {
+          "duration_s": 3.12,
+          "pitch_mean_hz": 134.0813036524718,
+          "pitch_std_hz": 37.55989508095354,
+          "pitch_min_hz": 71.12030090986407,
+          "pitch_max_hz": 233.75544971224912,
+          "energy_mean": 0.07638595253229141,
+          "energy_std": 0.07997060567140579,
+          "energy_max": 0.2702670097351074,
+          "tempo_bpm": 93.75
+        }
+      },
+      {
+        "test_id": "transition_calm_excited",
+        "test_type": "transition",
+        "text": "Starting calm but getting more excited!",
+        "emotion": "calm->excited",
+        "intensity": 1.0,
+        "status": "success",
+        "file_path": "benchmark_output/ravdess/audio/transition_calm_excited.wav",
+        "duration": 3.16,
+        "error": null,
+        "prosody": {
+          "duration_s": 3.16,
+          "pitch_mean_hz": 115.93483402854189,
+          "pitch_std_hz": 41.725747208663066,
+          "pitch_min_hz": 82.64503181542116,
+          "pitch_max_hz": 250.53288772482563,
+          "energy_mean": 0.058839350938797,
+          "energy_std": 0.05692875385284424,
+          "energy_max": 0.26064151525497437,
+          "tempo_bpm": 112.5
+        }
+      }
+    ]
+  },
+  "prosody_analysis": {
+    "neutral": {
+      "pitch_mean": 154.5259844968277,
+      "pitch_std": 52.133855116762184,
+      "energy_mean": 0.09207266569137573,
+      "tempo": 104.16666666666667,
+      "sample_count": 1
+    },
+    "happy": {
+      "pitch_mean": 210.82532825017068,
+      "pitch_std": 103.52520988114912,
+      "energy_mean": 0.053033459931612015,
+      "tempo": 122.28260869565217,
+      "sample_count": 1
+    },
+    "sad": {
+      "pitch_mean": 140.75982460033447,
+      "pitch_std": 36.17969818863341,
+      "energy_mean": 0.07900767028331757,
+      "tempo": 82.72058823529412,
+      "sample_count": 1
+    },
+    "angry": {
+      "pitch_mean": 228.66190345944088,
+      "pitch_std": 152.89892258626608,
+      "energy_mean": 0.07210899889469147,
+      "tempo": 156.25,
+      "sample_count": 1
+    },
+    "fearful": {
+      "pitch_mean": 125.40117866395441,
+      "pitch_std": 33.54537527372775,
+      "energy_mean": 0.11346539855003357,
+      "tempo": 82.72058823529412,
+      "sample_count": 1
+    },
+    "surprised": {
+      "pitch_mean": 181.58614272778138,
+      "pitch_std": 73.0387985785576,
+      "energy_mean": 0.11493102461099625,
+      "tempo": 108.17307692307692,
+      "sample_count": 1
+    },
+    "calm": {
+      "pitch_mean": 129.22574153705452,
+      "pitch_std": 45.036216631076826,
+      "energy_mean": 0.08099601417779922,
+      "tempo": 100.44642857142857,
+      "sample_count": 1
+    },
+    "disgusted": {
+      "pitch_mean": 183.85294321711365,
+      "pitch_std": 47.41677844029119,
+      "energy_mean": 0.1110275611281395,
+      "tempo": 148.02631578947367,
+      "sample_count": 1
+    },
+    "excited": {
+      "pitch_mean": 145.53416336565078,
+      "pitch_std": 37.01396345062228,
+      "energy_mean": 0.0948314517736435,
+      "tempo": 78.125,
+      "sample_count": 1
+    },
+    "sarcastic": {
+      "pitch_mean": 173.97644233274605,
+      "pitch_std": 49.98035937003385,
+      "energy_mean": 0.1063646674156189,
+      "tempo": 85.22727272727273,
+      "sample_count": 1
+    },
+    "bored": {
+      "pitch_mean": 128.86507378580194,
+      "pitch_std": 71.79655455376158,
+      "energy_mean": 0.07511293888092041,
+      "tempo": 76.01351351351352,
+      "sample_count": 1
+    },
+    "affectionate": {
+      "pitch_mean": 142.8068136224688,
+      "pitch_std": 40.530919895299874,
+      "energy_mean": 0.11097092181444168,
+      "tempo": 122.28260869565217,
+      "sample_count": 1
+    },
+    "contemptuous": {
+      "pitch_mean": 154.9833113501169,
+      "pitch_std": 45.02268041503279,
+      "energy_mean": 0.10865050554275513,
+      "tempo": 140.625,
+      "sample_count": 1
+    },
+    "awed": {
+      "pitch_mean": 172.42210673936725,
+      "pitch_std": 22.056893190924402,
+      "energy_mean": 0.11055383831262589,
+      "tempo": 112.5,
+      "sample_count": 1
+    }
+  },
+  "summary": {
+    "total_tests": 29,
+    "passed": 29,
+    "failed": 0,
+    "success_rate": 1.0,
+    "average_duration": 2.5613793103448277
+  }
+}
