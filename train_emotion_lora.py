@@ -49,6 +49,7 @@ from chatterbox.models.t3.modules.lora_adapter import (
     LoRALinear,
     AdapterLayer,
 )
+from chatterbox.models.t3.modules.emotion_losses import CombinedEmotionLoss
 from chatterbox.models.t3.modules.cond_enc import T3Cond
 from chatterbox.models.s3tokenizer import S3_SR
 from chatterbox.models.s3gen import S3GEN_SR
@@ -593,6 +594,7 @@ def train_step(
     device: str,
     optimizer: torch.optim.Optimizer,
     batch_idx: int = 0,
+    combined_loss_fn: Optional[CombinedEmotionLoss] = None,
 ) -> float:
     """Perform one training step with actual TTS loss."""
     model.t3.train()
@@ -810,18 +812,50 @@ def train_step(
         
         # Combined loss (weighted sum)
         # Speech loss is more important for TTS
-        loss = loss_text + 2.0 * loss_speech
-        
+        base_tts_loss = loss_text + 2.0 * loss_speech
+
         # Check if loss is valid
-        if torch.isnan(loss) or torch.isinf(loss):
-            print(f"Warning: Invalid loss (NaN/Inf): {loss.item()}, skipping batch")
+        if torch.isnan(base_tts_loss) or torch.isinf(base_tts_loss):
+            print(f"Warning: Invalid loss (NaN/Inf): {base_tts_loss.item()}, skipping batch")
             return 0.0
-        
+
         # Only reject if both components are exactly 0 (which shouldn't happen in real training)
         if loss_text.item() == 0.0 and loss_speech.item() == 0.0:
             if batch_idx < 10:  # Only print first few
                 print(f"Warning: Both losses are 0.0 (batch {batch_idx}), this might indicate an issue")
             return 0.0
+
+        # Apply CombinedEmotionLoss if SER loss is enabled
+        if combined_loss_fn is not None:
+            try:
+                # Get audio for SER evaluation (resample to 16kHz if needed)
+                audio_for_ser = batch["audio_16k"].to(device)  # Already 16kHz
+
+                # Squeeze emotion_embeds for loss function (remove sequence dim)
+                emotion_embeds_for_loss = emotion_embeds.squeeze(1)  # (B, emotion_dim)
+
+                # Compute combined loss with SER
+                loss_result = combined_loss_fn(
+                    tts_loss=base_tts_loss,
+                    emotion_embed=emotion_embeds_for_loss,
+                    audio_features=None,  # Not using audio features for now
+                    audio=audio_for_ser,
+                    target_emotions=list(emotions),
+                )
+                loss = loss_result["total_loss"]
+
+                # Log SER metrics occasionally
+                if batch_idx % 50 == 0:
+                    ser_acc = loss_result.get("ser_accuracy", torch.tensor(0.0))
+                    if isinstance(ser_acc, torch.Tensor):
+                        ser_acc = ser_acc.item()
+                    print(f"  Batch {batch_idx} - SER accuracy: {ser_acc:.2%}")
+            except Exception as e:
+                if batch_idx < 5:
+                    print(f"Warning: SER loss computation failed: {e}, using base loss")
+                loss = base_tts_loss
+        else:
+            loss = base_tts_loss
         
         # Backward pass
         loss.backward()
@@ -943,6 +977,14 @@ Examples:
     parser.add_argument("--skip_validation", action="store_true",
                        help="Skip data validation")
 
+    # SER Integration Loss
+    parser.add_argument("--use_ser_loss", action="store_true",
+                       help="Enable SER (Speech Emotion Recognition) loss during training")
+    parser.add_argument("--ser_weight", type=float, default=0.3,
+                       help="Weight for SER loss (default: 0.3)")
+    parser.add_argument("--consistency_weight", type=float, default=0.5,
+                       help="Weight for emotion consistency loss (default: 0.5)")
+
     # Misc
     parser.add_argument("--download_data", action="store_true",
                        help="Download/setup data directory")
@@ -996,6 +1038,9 @@ Examples:
             "early_stop_loss": args.early_stop_loss,
             "early_stop_patience": args.early_stop_patience,
             "balanced_sampling": args.balanced_sampling,
+            "use_ser_loss": args.use_ser_loss,
+            "ser_weight": args.ser_weight,
+            "consistency_weight": args.consistency_weight,
         }
     )
 
@@ -1200,7 +1245,27 @@ Examples:
     
     print(f"\nTotal trainable parameters: {sum(p.numel() for p in trainable_params):,}")
     optimizer = torch.optim.AdamW(trainable_params, lr=args.lr, weight_decay=1e-5)
-    
+
+    # Setup CombinedEmotionLoss if SER loss is enabled
+    combined_loss_fn = None
+    if args.use_ser_loss:
+        print(f"\n{'='*60}")
+        print("Setting up SER Integration Loss...")
+        print(f"  SER weight: {args.ser_weight}")
+        print(f"  Consistency weight: {args.consistency_weight}")
+        print(f"{'='*60}")
+
+        combined_loss_fn = CombinedEmotionLoss(
+            emotion_dim=64,  # Match emotion embedding dimension
+            audio_feature_dim=256,
+            use_ser=True,
+            use_discriminator=False,
+            consistency_weight=args.consistency_weight,
+            ser_weight=args.ser_weight,
+        )
+        combined_loss_fn.to(device)
+        print("SER Integration Loss initialized successfully")
+
     # Training loop
     print(f"\n{'='*60}")
     print(f"Starting training for {args.epochs} epochs...")
@@ -1226,7 +1291,11 @@ Examples:
 
         for batch_idx, batch in enumerate(progress_bar):
             try:
-                loss = train_step(model, batch, device, optimizer, batch_idx=batch_idx)
+                loss = train_step(
+                    model, batch, device, optimizer,
+                    batch_idx=batch_idx,
+                    combined_loss_fn=combined_loss_fn,
+                )
                 if loss > 0.0:  # Only count valid losses
                     total_loss += loss
                     valid_batches += 1
