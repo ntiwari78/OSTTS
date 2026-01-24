@@ -1473,7 +1473,7 @@ Examples:
 
             contrastive_loss_fn = SupervisedContrastiveLoss(
                 temperature=args.contrastive_temperature,
-                use_hard_negatives=True,
+                hard_negative_weight=1.0,
             )
             contrastive_loss_fn.to(device)
             print("Contrastive Loss initialized successfully")
