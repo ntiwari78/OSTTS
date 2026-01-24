@@ -53,3 +53,6 @@ gita_audio_english/
 # Ignore generated sample .wav files
 **/*.wav
 **/*.wave
+
+# macOS system files
+.DS_Store
