@@ -66,6 +66,26 @@ try:
 except ImportError:
     HAS_PROSODY_MODULE = False
 
+# Phase 3: Contrastive Pre-training
+try:
+    from chatterbox.models.t3.modules.emotion_contrastive import (
+        EmotionContrastiveLoss,
+        SupervisedContrastiveLoss,
+    )
+    HAS_CONTRASTIVE_MODULE = True
+except ImportError:
+    HAS_CONTRASTIVE_MODULE = False
+
+# Phase 3: SER-guided Data Filtering
+try:
+    from chatterbox.models.t3.modules.ser_data_filter import (
+        SERDataFilter,
+        FilterResult,
+    )
+    HAS_SER_FILTER_MODULE = True
+except ImportError:
+    HAS_SER_FILTER_MODULE = False
+
 
 # =============================================================================
 # Dataset Configuration
@@ -609,6 +629,8 @@ def train_step(
     prosody_predictor: Optional["EmotionProsodyPredictor"] = None,
     prosody_loss_fn: Optional["EmotionProsodyTargetLoss"] = None,
     prosody_weight: float = 0.2,
+    contrastive_loss_fn: Optional["SupervisedContrastiveLoss"] = None,
+    contrastive_weight: float = 0.1,
 ) -> float:
     """Perform one training step with actual TTS loss."""
     model.t3.train()
@@ -889,6 +911,32 @@ def train_step(
                 if batch_idx < 5:
                     print(f"Warning: Prosody loss computation failed: {e}")
 
+        # Apply Contrastive Loss if enabled (Phase 3)
+        if contrastive_loss_fn is not None:
+            try:
+                # Convert emotion names to numeric labels
+                unique_emotions = list(set(emotions))
+                emotion_to_label = {e: i for i, e in enumerate(unique_emotions)}
+                labels = torch.tensor(
+                    [emotion_to_label[e] for e in emotions],
+                    device=device,
+                    dtype=torch.long
+                )
+
+                # Compute contrastive loss on emotion embeddings
+                contrastive_loss = contrastive_loss_fn(
+                    embeddings=emotion_embeds.squeeze(1),  # (B, emotion_dim)
+                    labels=labels,
+                )
+                loss = loss + contrastive_weight * contrastive_loss
+
+                # Log contrastive loss occasionally
+                if batch_idx % 100 == 0:
+                    print(f"  Batch {batch_idx} - Contrastive loss: {contrastive_loss.item():.4f}")
+            except Exception as e:
+                if batch_idx < 5:
+                    print(f"Warning: Contrastive loss computation failed: {e}")
+
         # Backward pass
         loss.backward()
         
@@ -1025,6 +1073,22 @@ Examples:
     parser.add_argument("--expressiveness_scale", type=float, default=1.0,
                        help="Expressiveness scale for emotion embeddings (1.0-1.5 recommended)")
 
+    # Phase 3: Contrastive Pre-training
+    parser.add_argument("--use_contrastive_loss", action="store_true",
+                       help="Enable contrastive loss for emotion embedding separation (Phase 3)")
+    parser.add_argument("--contrastive_weight", type=float, default=0.1,
+                       help="Weight for contrastive loss (default: 0.1)")
+    parser.add_argument("--contrastive_temperature", type=float, default=0.07,
+                       help="Temperature for contrastive loss (default: 0.07)")
+
+    # Phase 3: SER-guided Data Filtering
+    parser.add_argument("--use_ser_filtering", action="store_true",
+                       help="Enable SER-guided data filtering (Phase 3)")
+    parser.add_argument("--min_agreement", type=float, default=0.5,
+                       help="Minimum SER model agreement for including samples (default: 0.5)")
+    parser.add_argument("--filter_cache_path", type=str, default=None,
+                       help="Path to cache filtered dataset (optional)")
+
     # Misc
     parser.add_argument("--download_data", action="store_true",
                        help="Download/setup data directory")
@@ -1084,6 +1148,12 @@ Examples:
             "use_prosody_loss": args.use_prosody_loss,
             "prosody_weight": args.prosody_weight,
             "expressiveness_scale": args.expressiveness_scale,
+            # Phase 3
+            "use_contrastive_loss": args.use_contrastive_loss,
+            "contrastive_weight": args.contrastive_weight,
+            "contrastive_temperature": args.contrastive_temperature,
+            "use_ser_filtering": args.use_ser_filtering,
+            "min_agreement": args.min_agreement,
         }
     )
 
@@ -1236,6 +1306,63 @@ Examples:
         print(f"  {emotion}: {count}")
 
     # ==========================================================================
+    # SER-guided Data Filtering (Phase 3)
+    # ==========================================================================
+    if args.use_ser_filtering:
+        if HAS_SER_FILTER_MODULE:
+            print(f"\n{'='*60}")
+            print("Applying SER-guided Data Filtering (Phase 3)...")
+            print(f"  Minimum agreement: {args.min_agreement}")
+            if args.filter_cache_path:
+                print(f"  Cache path: {args.filter_cache_path}")
+            print(f"{'='*60}")
+
+            try:
+                # Create filter
+                ser_filter = SERDataFilter(
+                    min_agreement=args.min_agreement,
+                    cache_path=args.filter_cache_path,
+                )
+
+                # Get audio paths and emotions from dataset
+                audio_paths = []
+                expected_emotions = []
+                for i in range(len(dataset)):
+                    sample = dataset[i]
+                    audio_paths.append(sample.get("audio_path", f"sample_{i}"))
+                    expected_emotions.append(sample["emotion"])
+
+                # Filter the dataset indices
+                filter_result = ser_filter.filter_dataset(
+                    audio_paths=audio_paths,
+                    expected_emotions=expected_emotions,
+                )
+
+                # Create filtered dataset using valid indices
+                if filter_result.filtered_indices:
+                    original_len = len(dataset)
+
+                    # Create a subset dataset with filtered indices
+                    from torch.utils.data import Subset
+                    dataset = Subset(dataset, filter_result.filtered_indices)
+
+                    print(f"  Filtered: {original_len} -> {len(dataset)} samples")
+                    print(f"  Kept: {filter_result.kept_count}/{filter_result.total_count} ({filter_result.kept_ratio:.1%})")
+                    print(f"  Agreement stats: mean={filter_result.agreement_mean:.2f}, std={filter_result.agreement_std:.2f}")
+
+                    # Update training log
+                    training_log.samples_loaded = len(dataset)
+                else:
+                    print("  Warning: SER filtering returned no valid indices, using original dataset")
+
+            except Exception as e:
+                print(f"  Warning: SER filtering failed: {e}, using original dataset")
+                import traceback
+                traceback.print_exc()
+        else:
+            print("Warning: SER filter module not available, skipping data filtering")
+
+    # ==========================================================================
     # DataLoader Setup
     # ==========================================================================
     if args.balanced_sampling:
@@ -1334,6 +1461,25 @@ Examples:
         else:
             print("Warning: Prosody module not available, skipping prosody loss")
 
+    # Setup Contrastive Loss if enabled (Phase 3)
+    contrastive_loss_fn = None
+    if args.use_contrastive_loss:
+        if HAS_CONTRASTIVE_MODULE:
+            print(f"\n{'='*60}")
+            print("Setting up Contrastive Loss (Phase 3)...")
+            print(f"  Contrastive weight: {args.contrastive_weight}")
+            print(f"  Temperature: {args.contrastive_temperature}")
+            print(f"{'='*60}")
+
+            contrastive_loss_fn = SupervisedContrastiveLoss(
+                temperature=args.contrastive_temperature,
+                use_hard_negatives=True,
+            )
+            contrastive_loss_fn.to(device)
+            print("Contrastive Loss initialized successfully")
+        else:
+            print("Warning: Contrastive module not available, skipping contrastive loss")
+
     # Training loop
     print(f"\n{'='*60}")
     print(f"Starting training for {args.epochs} epochs...")
@@ -1366,6 +1512,8 @@ Examples:
                     prosody_predictor=prosody_predictor,
                     prosody_loss_fn=prosody_loss_fn,
                     prosody_weight=args.prosody_weight,
+                    contrastive_loss_fn=contrastive_loss_fn,
+                    contrastive_weight=args.contrastive_weight,
                 )
                 if loss > 0.0:  # Only count valid losses
                     total_loss += loss

@@ -64,6 +64,12 @@ CHECKPOINT_CONFIGS = {
         "dataset": "RAVDESS-SER",
         "language": "en",
     },
+    "cremad_ser": {
+        "audio_dir": "benchmark_output/cremad_ser/audio",
+        "dataset": "CREMA-D-SER",
+        "language": "en",
+    },
+
 }
 
 # Emotion mappings from filename patterns to expected emotions
@@ -727,7 +733,7 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "all"],
+        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "all"],
         default="all",
         help="Checkpoint to evaluate (default: all)",
     )

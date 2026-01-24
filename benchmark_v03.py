@@ -64,6 +64,14 @@ CHECKPOINT_CONFIGS = {
         "language": "en",
         "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
     },
+    "cremad_ser": {
+        "path": "checkpoints/emotion_lora_cremad_ser/checkpoint_epoch_9.pt",
+        "dataset": "CREMA-D-SER",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+
 }
 
 # New emotions in v0.3
@@ -622,9 +630,14 @@ def generate_comparison_report(
     for results in all_results.values():
         all_emotions.update(results.get("prosody_analysis", {}).keys())
 
+    # Get all checkpoint names for comparison (base and SER variants)
+    base_checkpoints = ["ravdess", "cremad", "iesc"]
+    ser_checkpoints = ["ravdess_ser", "cremad_ser", "iesc_ser"]
+    all_checkpoint_names = base_checkpoints + ser_checkpoints
+    
     for emotion in sorted(all_emotions):
         report += f"| {emotion} |"
-        for checkpoint in ["ravdess", "cremad", "iesc"]:
+        for checkpoint in all_checkpoint_names:
             if checkpoint in all_results:
                 prosody = all_results[checkpoint].get("prosody_analysis", {}).get(emotion, {})
                 pitch = prosody.get("pitch_mean", "-")
@@ -710,7 +723,7 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "all"],
+        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "all"],
         default="all",
         help="Checkpoint to benchmark (default: all)",
     )
@@ -765,11 +778,10 @@ def main():
         return
 
     # Run benchmarks
-    checkpoints = (
-        ["ravdess", "cremad", "iesc"]
-        if args.checkpoint == "all"
-        else [args.checkpoint]
-    )
+    if args.checkpoint == "all":
+        checkpoints = ["ravdess", "cremad", "iesc", "ravdess_ser", "cremad_ser", "iesc_ser"]
+    else:
+        checkpoints = [args.checkpoint]
 
     all_results = {}
     for checkpoint in checkpoints:
