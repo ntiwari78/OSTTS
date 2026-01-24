@@ -659,10 +659,10 @@ class EnsembleEmotionEvaluator:
 2. ✅ Enable SER loss in training - Added `--use_ser_loss` flag to train_emotion_lora.py
 3. ⏳ Retrain with SER feedback - Ready to run with new training command
 
-### Week 2 (High Priority)
-4. Increase prosodic parameter ranges
-5. Add prosody prediction head
-6. Calibrate intensity per emotion
+### Week 2 (High Priority) - **COMPLETED**
+4. ✅ Increase prosodic parameter ranges - Enhanced VAD and prosodic values in emotion_embeddings.py
+5. ✅ Add prosody prediction head - Created emotion_prosody.py with EmotionProsodyPredictor
+6. ✅ Calibrate intensity per emotion - Created emotion_intensity_calibrator.py
 
 ### Week 3 (Medium Priority)
 7. Implement SER-guided data filtering
@@ -684,29 +684,54 @@ class EnsembleEmotionEvaluator:
 ## New Training Pipeline
 
 ```bash
-# Step 1: Pre-train emotion embeddings contrastively
+# Step 1: Pre-train emotion embeddings contrastively (optional, Phase 3)
 python emotion_contrastive_pretrain.py \
     --dataset ravdess \
     --epochs 10
 
-# Step 2: Train with SER feedback
+# Step 2: Train with SER feedback and prosody loss (Phase 1 + Phase 2)
 python train_emotion_lora.py \
     --dataset ravdess \
     --use_ser_loss \
-    --ser_weight 0.5 \
+    --ser_weight 0.3 \
+    --use_prosody_loss \
+    --prosody_weight 0.2 \
     --expressiveness_scale 1.5 \
     --epochs 20 \
     --output_dir checkpoints/emotion_lora_ravdess_v04
 
 # Step 3: Calibrate intensity
-python emotion_intensity_calibrator.py \
-    --checkpoint checkpoints/emotion_lora_ravdess_v04/best.pt \
-    --output calibration_ravdess.json
+python -c "
+from chatterbox.models.t3.modules.emotion_intensity_calibrator import IntensityCalibrator
+# Load models and calibrate - see module documentation
+"
 
 # Step 4: Benchmark
 python benchmark_llm_emotions.py \
     --checkpoint ravdess \
     --output benchmark_output/comparison/BENCHMARK_LLM_RESULTS_V04.md
+```
+
+### Quick Training Commands (Phase 2)
+
+```bash
+# RAVDESS with SER + Prosody loss
+python train_emotion_lora.py \
+    --dataset ravdess \
+    --use_ser_loss --ser_weight 0.3 \
+    --use_prosody_loss --prosody_weight 0.2 \
+    --expressiveness_scale 1.3 \
+    --epochs 15 \
+    --output_dir checkpoints/emotion_lora_ravdess_phase2
+
+# IESC (Hindi) with SER + Prosody loss
+python train_emotion_lora.py \
+    --dataset iesc \
+    --use_ser_loss --ser_weight 0.3 \
+    --use_prosody_loss --prosody_weight 0.2 \
+    --expressiveness_scale 1.3 \
+    --epochs 15 \
+    --output_dir checkpoints/emotion_lora_iesc_phase2
 ```
 
 ---

@@ -149,6 +149,25 @@ def _create_64d_embedding(vad: List[float], prosodic: List[float]) -> List[float
     return vad + prosodic + fine_grained
 
 
+# =============================================================================
+# Phase 2: Enhanced Prosodic Parameters for Better SER Recognition
+# =============================================================================
+# Prosodic dimensions (indices 3-15):
+#   0: pitch_mean      - Overall pitch level
+#   1: pitch_range     - Pitch variation range
+#   2: pitch_contour   - Intonation pattern
+#   3: energy_mean     - Overall loudness/energy
+#   4: energy_range    - Energy variation
+#   5: speaking_rate   - Speech tempo
+#   6: rhythm          - Rhythmic patterns
+#   7: voice_quality   - Voice timbre
+#   8: breathiness     - Breathy quality
+#   9: tension         - Vocal tension
+#   10: nasality       - Nasal quality
+#   11: jitter         - Pitch perturbation
+#   12: shimmer        - Amplitude perturbation
+# =============================================================================
+
 EMOTION_INIT_EMBEDDINGS_64D = {
     # Neutral: baseline, all zeros
     "neutral": _create_64d_embedding(
@@ -156,103 +175,128 @@ EMOTION_INIT_EMBEDDINGS_64D = {
         prosodic=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     ),
 
-    # Happy: positive valence, medium-high arousal, medium dominance
+    # Happy: positive valence, high arousal, medium dominance
+    # ENHANCED: Increased pitch, energy, and speaking rate for better recognition
     "happy": _create_64d_embedding(
-        vad=[0.8, 0.6, 0.4],
-        prosodic=[0.5, 0.4, 0.3, 0.4, 0.3, 0.2, 0.3, 0.2, -0.2, -0.1, 0.0, 0.1, 0.1]
+        vad=[0.9, 0.8, 0.5],  # Increased from [0.8, 0.6, 0.4]
+        prosodic=[0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5, 0.3, -0.3, -0.2, 0.0, 0.15, 0.15]
+        # Was:   [0.5, 0.4, 0.3, 0.4, 0.3, 0.2, 0.3, 0.2, -0.2, -0.1, 0.0, 0.1, 0.1]
     ),
 
     # Sad: negative valence, low arousal, low dominance
+    # ENHANCED: Lower pitch, less energy, slower rate for clearer sadness
     "sad": _create_64d_embedding(
-        vad=[-0.7, -0.5, -0.4],
-        prosodic=[-0.4, -0.3, -0.2, -0.5, -0.2, -0.4, -0.3, -0.2, 0.3, -0.2, 0.0, 0.0, 0.1]
+        vad=[-0.8, -0.7, -0.5],  # Increased from [-0.7, -0.5, -0.4]
+        prosodic=[-0.6, -0.5, -0.4, -0.7, -0.4, -0.6, -0.5, -0.3, 0.4, -0.3, 0.0, 0.05, 0.15]
+        # Was:   [-0.4, -0.3, -0.2, -0.5, -0.2, -0.4, -0.3, -0.2, 0.3, -0.2, 0.0, 0.0, 0.1]
     ),
 
-    # Angry: negative valence, high arousal, high dominance
+    # Angry: negative valence, very high arousal, high dominance
+    # ENHANCED: Maximum energy, tension, faster rate for unmistakable anger
     "angry": _create_64d_embedding(
-        vad=[-0.5, 0.9, 0.7],
-        prosodic=[0.3, 0.6, 0.4, 0.8, 0.5, 0.3, 0.4, -0.3, -0.3, 0.6, 0.1, 0.2, 0.2]
+        vad=[-0.6, 1.0, 0.9],  # Increased from [-0.5, 0.9, 0.7]
+        prosodic=[0.5, 0.8, 0.6, 1.0, 0.7, 0.5, 0.6, -0.4, -0.4, 0.9, 0.15, 0.3, 0.3]
+        # Was:   [0.3, 0.6, 0.4, 0.8, 0.5, 0.3, 0.4, -0.3, -0.3, 0.6, 0.1, 0.2, 0.2]
     ),
 
     # Excited: very positive valence, very high arousal, high dominance
+    # ENHANCED: High energy and fast rate
     "excited": _create_64d_embedding(
-        vad=[0.9, 0.9, 0.6],
-        prosodic=[0.6, 0.7, 0.5, 0.7, 0.5, 0.5, 0.5, 0.3, -0.2, 0.2, 0.0, 0.2, 0.1]
+        vad=[1.0, 1.0, 0.7],  # Increased from [0.9, 0.9, 0.6]
+        prosodic=[0.8, 0.9, 0.7, 0.9, 0.7, 0.7, 0.7, 0.4, -0.3, 0.3, 0.0, 0.25, 0.15]
+        # Was:   [0.6, 0.7, 0.5, 0.7, 0.5, 0.5, 0.5, 0.3, -0.2, 0.2, 0.0, 0.2, 0.1]
     ),
 
     # Calm: slightly positive valence, very low arousal, medium dominance
+    # ENHANCED: Lower energy and slower rate
     "calm": _create_64d_embedding(
-        vad=[0.3, -0.7, 0.2],
-        prosodic=[-0.3, -0.4, -0.3, -0.4, -0.3, -0.5, -0.4, 0.3, 0.2, -0.4, 0.0, -0.1, -0.1]
+        vad=[0.4, -0.9, 0.3],  # Adjusted from [0.3, -0.7, 0.2]
+        prosodic=[-0.5, -0.6, -0.5, -0.6, -0.5, -0.7, -0.6, 0.4, 0.3, -0.6, 0.0, -0.15, -0.15]
+        # Was:   [-0.3, -0.4, -0.3, -0.4, -0.3, -0.5, -0.4, 0.3, 0.2, -0.4, 0.0, -0.1, -0.1]
     ),
 
     # Surprised: positive valence, high arousal, low dominance
+    # ENHANCED: Very high pitch range for unmistakable surprise
     "surprised": _create_64d_embedding(
-        vad=[0.4, 0.8, -0.2],
-        prosodic=[0.7, 0.8, 0.6, 0.5, 0.4, 0.2, 0.3, 0.1, 0.1, 0.1, 0.0, 0.1, 0.1]
+        vad=[0.5, 1.0, -0.3],  # Increased from [0.4, 0.8, -0.2]
+        prosodic=[0.9, 1.0, 0.8, 0.7, 0.6, 0.3, 0.4, 0.2, 0.15, 0.2, 0.0, 0.15, 0.15]
+        # Was:   [0.7, 0.8, 0.6, 0.5, 0.4, 0.2, 0.3, 0.1, 0.1, 0.1, 0.0, 0.1, 0.1]
     ),
 
     # Fearful: negative valence, high arousal, very low dominance
+    # ENHANCED: Higher tension and tremor for clearer fear
     "fearful": _create_64d_embedding(
-        vad=[-0.6, 0.7, -0.6],
-        prosodic=[0.4, 0.5, 0.3, 0.3, 0.4, 0.3, 0.2, -0.2, 0.2, 0.4, 0.1, 0.3, 0.2]
+        vad=[-0.7, 0.9, -0.8],  # Adjusted from [-0.6, 0.7, -0.6]
+        prosodic=[0.6, 0.7, 0.5, 0.4, 0.6, 0.5, 0.3, -0.3, 0.3, 0.6, 0.15, 0.4, 0.3]
+        # Was:   [0.4, 0.5, 0.3, 0.3, 0.4, 0.3, 0.2, -0.2, 0.2, 0.4, 0.1, 0.3, 0.2]
     ),
 
     # Disgusted: negative valence, medium arousal, medium dominance
+    # ENHANCED: More nasal quality and tension
     "disgusted": _create_64d_embedding(
-        vad=[-0.6, 0.3, 0.3],
-        prosodic=[0.0, 0.2, 0.1, 0.2, 0.2, -0.1, 0.1, -0.3, 0.0, 0.3, 0.2, 0.1, 0.1]
+        vad=[-0.7, 0.4, 0.4],  # Adjusted from [-0.6, 0.3, 0.3]
+        prosodic=[0.1, 0.3, 0.2, 0.3, 0.3, -0.2, 0.15, -0.4, 0.0, 0.5, 0.3, 0.15, 0.15]
+        # Was:   [0.0, 0.2, 0.1, 0.2, 0.2, -0.1, 0.1, -0.3, 0.0, 0.3, 0.2, 0.1, 0.1]
     ),
 
     # Whisper: neutral valence, very low arousal, low dominance
+    # ENHANCED: Maximum breathiness and minimum energy
     "whisper": _create_64d_embedding(
-        vad=[0.0, -0.8, -0.5],
-        prosodic=[-0.5, -0.4, -0.3, -0.8, -0.4, -0.3, -0.3, -0.4, 0.6, -0.5, 0.0, 0.0, 0.0]
+        vad=[0.0, -1.0, -0.7],  # Adjusted from [0.0, -0.8, -0.5]
+        prosodic=[-0.7, -0.6, -0.5, -1.0, -0.6, -0.4, -0.4, -0.5, 0.8, -0.7, 0.0, 0.0, 0.0]
+        # Was:   [-0.5, -0.4, -0.3, -0.8, -0.4, -0.3, -0.3, -0.4, 0.6, -0.5, 0.0, 0.0, 0.0]
     ),
 
-    # Shout: positive valence, very high arousal, very high dominance
+    # Shout: positive valence, maximum arousal, maximum dominance
+    # ENHANCED: Maximum energy and tension
     "shout": _create_64d_embedding(
-        vad=[0.3, 1.0, 0.9],
-        prosodic=[0.4, 0.5, 0.3, 1.0, 0.6, 0.2, 0.4, -0.2, -0.4, 0.7, 0.1, 0.3, 0.3]
+        vad=[0.4, 1.0, 1.0],  # Adjusted from [0.3, 1.0, 0.9]
+        prosodic=[0.6, 0.7, 0.5, 1.0, 0.8, 0.3, 0.5, -0.3, -0.5, 0.9, 0.15, 0.4, 0.4]
+        # Was:   [0.4, 0.5, 0.3, 1.0, 0.6, 0.2, 0.4, -0.2, -0.4, 0.7, 0.1, 0.3, 0.3]
     ),
 
     # =========================================================================
-    # New emotions (v0.2.1) - 5 additional emotions
+    # New emotions (v0.2.1) - 5 additional emotions (ENHANCED)
     # =========================================================================
 
     # Sarcastic: slightly negative valence, medium arousal, medium-high dominance
-    # Characterized by exaggerated intonation patterns and deliberate pacing
+    # ENHANCED: More exaggerated intonation patterns
     "sarcastic": _create_64d_embedding(
-        vad=[-0.2, 0.3, 0.4],
-        prosodic=[0.2, 0.5, 0.4, 0.2, 0.3, -0.1, 0.3, -0.2, 0.0, 0.1, 0.1, 0.1, 0.0]
+        vad=[-0.3, 0.4, 0.5],  # Adjusted from [-0.2, 0.3, 0.4]
+        prosodic=[0.3, 0.7, 0.6, 0.3, 0.4, -0.15, 0.4, -0.3, 0.0, 0.15, 0.15, 0.15, 0.0]
+        # Was:   [0.2, 0.5, 0.4, 0.2, 0.3, -0.1, 0.3, -0.2, 0.0, 0.1, 0.1, 0.1, 0.0]
     ),
 
     # Bored: negative valence, very low arousal, low dominance
-    # Characterized by flat intonation, slow rate, low energy
+    # ENHANCED: Flatter intonation, slower rate
     "bored": _create_64d_embedding(
-        vad=[-0.3, -0.6, -0.2],
-        prosodic=[-0.3, -0.5, -0.4, -0.4, -0.3, -0.5, -0.4, -0.1, 0.1, -0.3, 0.0, 0.0, 0.0]
+        vad=[-0.4, -0.8, -0.3],  # Adjusted from [-0.3, -0.6, -0.2]
+        prosodic=[-0.5, -0.7, -0.6, -0.6, -0.5, -0.7, -0.6, -0.15, 0.15, -0.4, 0.0, 0.0, 0.0]
+        # Was:   [-0.3, -0.5, -0.4, -0.4, -0.3, -0.5, -0.4, -0.1, 0.1, -0.3, 0.0, 0.0, 0.0]
     ),
 
     # Affectionate: very positive valence, medium-low arousal, medium dominance
-    # Characterized by warm tone, soft voice, gentle pacing
+    # ENHANCED: Warmer tone, softer voice
     "affectionate": _create_64d_embedding(
-        vad=[0.9, 0.3, 0.3],
-        prosodic=[0.2, 0.3, 0.2, 0.1, 0.2, -0.2, 0.2, 0.4, 0.3, -0.3, 0.0, 0.0, 0.0]
+        vad=[1.0, 0.4, 0.4],  # Adjusted from [0.9, 0.3, 0.3]
+        prosodic=[0.3, 0.4, 0.3, 0.15, 0.3, -0.3, 0.3, 0.5, 0.4, -0.4, 0.0, 0.0, 0.0]
+        # Was:   [0.2, 0.3, 0.2, 0.1, 0.2, -0.2, 0.2, 0.4, 0.3, -0.3, 0.0, 0.0, 0.0]
     ),
 
     # Contemptuous: negative valence, low-medium arousal, high dominance
-    # Characterized by dismissive tone, slight sneer quality
+    # ENHANCED: More dismissive tone
     "contemptuous": _create_64d_embedding(
-        vad=[-0.5, 0.1, 0.6],
-        prosodic=[0.0, 0.2, 0.1, 0.1, 0.2, -0.2, 0.1, -0.3, 0.0, 0.2, 0.2, 0.1, 0.0]
+        vad=[-0.6, 0.2, 0.7],  # Adjusted from [-0.5, 0.1, 0.6]
+        prosodic=[0.1, 0.3, 0.15, 0.15, 0.3, -0.3, 0.15, -0.4, 0.0, 0.3, 0.3, 0.15, 0.0]
+        # Was:   [0.0, 0.2, 0.1, 0.1, 0.2, -0.2, 0.1, -0.3, 0.0, 0.2, 0.2, 0.1, 0.0]
     ),
 
     # Awed: positive valence, medium-high arousal, low dominance
-    # Characterized by breathy quality, wide pitch range, slower delivery
+    # ENHANCED: More breathy, wider pitch range
     "awed": _create_64d_embedding(
-        vad=[0.6, 0.5, -0.3],
-        prosodic=[0.3, 0.5, 0.4, 0.3, 0.3, -0.2, 0.2, 0.2, 0.3, -0.1, 0.0, 0.1, 0.0]
+        vad=[0.7, 0.6, -0.4],  # Adjusted from [0.6, 0.5, -0.3]
+        prosodic=[0.4, 0.7, 0.6, 0.4, 0.4, -0.3, 0.3, 0.3, 0.5, -0.15, 0.0, 0.15, 0.0]
+        # Was:   [0.3, 0.5, 0.4, 0.3, 0.3, -0.2, 0.2, 0.2, 0.3, -0.1, 0.0, 0.1, 0.0]
     ),
 }
 
@@ -266,6 +310,7 @@ class EmotionEmbeddings(nn.Module):
     - Intensity control: scale emotion effect from neutral (0.0) to full (1.0) to exaggerated (>1.0)
     - Nonlinear intensity transform: learned MLP for perceptually accurate intensity scaling
     - Emotion interpolation: blend multiple emotions with weights
+    - Expressiveness scale: global multiplier for prosodic features (Phase 2)
 
     Supported emotions (16 total):
     - Basic: neutral, happy, sad, angry, fearful, disgusted, surprised
@@ -287,6 +332,7 @@ class EmotionEmbeddings(nn.Module):
         emotion_embed_dim: int = 64,
         emotion_types: Optional[Dict] = None,
         use_nonlinear_intensity: bool = True,
+        expressiveness_scale: float = 1.0,
     ):
         """
         Args:
@@ -295,10 +341,14 @@ class EmotionEmbeddings(nn.Module):
                           If None, uses EMOTION_INIT_EMBEDDINGS_64D.
             use_nonlinear_intensity: Whether to use learned nonlinear intensity transform
                                     (default: True for v0.2+, set False for backward compatibility)
+            expressiveness_scale: Global multiplier for prosodic features (default: 1.0)
+                                 Values > 1.0 make emotions more pronounced for SER recognition.
+                                 Recommended: 1.0-1.5 for natural speech, 1.5-2.0 for expressive.
         """
         super().__init__()
         self.emotion_embed_dim = emotion_embed_dim
         self.use_nonlinear_intensity = use_nonlinear_intensity
+        self.expressiveness_scale = expressiveness_scale
 
         if emotion_types is None:
             emotion_types = EMOTION_INIT_EMBEDDINGS_64D
@@ -396,6 +446,13 @@ class EmotionEmbeddings(nn.Module):
         idx_tensor = torch.tensor([idx], dtype=torch.long, device=target_device)
         target_embed = self.embedding(idx_tensor)  # (1, embed_dim)
 
+        # Apply expressiveness scale to prosodic dimensions (3-15)
+        # This makes emotions more pronounced for better SER recognition
+        if self.expressiveness_scale != 1.0 and emotion_name != "neutral":
+            target_embed = target_embed.clone()
+            # Scale prosodic features (dims 3-15) by expressiveness_scale
+            target_embed[:, 3:16] = target_embed[:, 3:16] * self.expressiveness_scale
+
         # If intensity is 1.0 or emotion is neutral, return directly
         if intensity == 1.0 or emotion_name == "neutral":
             return target_embed
@@ -478,6 +535,22 @@ class EmotionEmbeddings(nn.Module):
         return self.emotion_to_idx[emotion_name]
 
 
-def create_emotion_embeddings(emotion_embed_dim: int = 64) -> EmotionEmbeddings:
-    """Factory function to create emotion embeddings with default 64D dimension."""
-    return EmotionEmbeddings(emotion_embed_dim=emotion_embed_dim)
+def create_emotion_embeddings(
+    emotion_embed_dim: int = 64,
+    expressiveness_scale: float = 1.0,
+) -> EmotionEmbeddings:
+    """
+    Factory function to create emotion embeddings.
+
+    Args:
+        emotion_embed_dim: Dimension of emotion embeddings (default: 64)
+        expressiveness_scale: Global multiplier for prosodic features (default: 1.0)
+                             Use 1.5 for better SER recognition.
+
+    Returns:
+        EmotionEmbeddings instance
+    """
+    return EmotionEmbeddings(
+        emotion_embed_dim=emotion_embed_dim,
+        expressiveness_scale=expressiveness_scale,
+    )

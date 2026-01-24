@@ -55,6 +55,17 @@ from chatterbox.models.s3tokenizer import S3_SR
 from chatterbox.models.s3gen import S3GEN_SR
 from chatterbox.models.tokenizers import MTLTokenizer
 
+# Phase 2: Prosody Enhancement
+try:
+    from chatterbox.models.t3.modules.emotion_prosody import (
+        EmotionProsodyPredictor,
+        EmotionProsodyTargetLoss,
+        create_prosody_predictor,
+    )
+    HAS_PROSODY_MODULE = True
+except ImportError:
+    HAS_PROSODY_MODULE = False
+
 
 # =============================================================================
 # Dataset Configuration
@@ -595,6 +606,9 @@ def train_step(
     optimizer: torch.optim.Optimizer,
     batch_idx: int = 0,
     combined_loss_fn: Optional[CombinedEmotionLoss] = None,
+    prosody_predictor: Optional["EmotionProsodyPredictor"] = None,
+    prosody_loss_fn: Optional["EmotionProsodyTargetLoss"] = None,
+    prosody_weight: float = 0.2,
 ) -> float:
     """Perform one training step with actual TTS loss."""
     model.t3.train()
@@ -856,7 +870,25 @@ def train_step(
                 loss = base_tts_loss
         else:
             loss = base_tts_loss
-        
+
+        # Apply Prosody Loss if enabled (Phase 2)
+        if prosody_predictor is not None and prosody_loss_fn is not None:
+            try:
+                # Get emotion embeddings for prosody prediction
+                prosody_loss = prosody_loss_fn(
+                    predictor=prosody_predictor,
+                    emotion_embed=emotion_embeds.squeeze(1),  # (B, emotion_dim)
+                    emotion_names=list(emotions),
+                )
+                loss = loss + prosody_weight * prosody_loss
+
+                # Log prosody loss occasionally
+                if batch_idx % 100 == 0:
+                    print(f"  Batch {batch_idx} - Prosody loss: {prosody_loss.item():.4f}")
+            except Exception as e:
+                if batch_idx < 5:
+                    print(f"Warning: Prosody loss computation failed: {e}")
+
         # Backward pass
         loss.backward()
         
@@ -985,6 +1017,14 @@ Examples:
     parser.add_argument("--consistency_weight", type=float, default=0.5,
                        help="Weight for emotion consistency loss (default: 0.5)")
 
+    # Phase 2: Prosody Enhancement
+    parser.add_argument("--use_prosody_loss", action="store_true",
+                       help="Enable prosody prediction loss (Phase 2)")
+    parser.add_argument("--prosody_weight", type=float, default=0.2,
+                       help="Weight for prosody loss (default: 0.2)")
+    parser.add_argument("--expressiveness_scale", type=float, default=1.0,
+                       help="Expressiveness scale for emotion embeddings (1.0-1.5 recommended)")
+
     # Misc
     parser.add_argument("--download_data", action="store_true",
                        help="Download/setup data directory")
@@ -1041,6 +1081,9 @@ Examples:
             "use_ser_loss": args.use_ser_loss,
             "ser_weight": args.ser_weight,
             "consistency_weight": args.consistency_weight,
+            "use_prosody_loss": args.use_prosody_loss,
+            "prosody_weight": args.prosody_weight,
+            "expressiveness_scale": args.expressiveness_scale,
         }
     )
 
@@ -1266,6 +1309,31 @@ Examples:
         combined_loss_fn.to(device)
         print("SER Integration Loss initialized successfully")
 
+    # Setup Prosody Loss if enabled (Phase 2)
+    prosody_predictor = None
+    prosody_loss_fn = None
+    if args.use_prosody_loss:
+        if HAS_PROSODY_MODULE:
+            print(f"\n{'='*60}")
+            print("Setting up Prosody Prediction Loss (Phase 2)...")
+            print(f"  Prosody weight: {args.prosody_weight}")
+            print(f"  Expressiveness scale: {args.expressiveness_scale}")
+            print(f"{'='*60}")
+
+            prosody_predictor = create_prosody_predictor(emotion_dim=64)
+            prosody_predictor.to(device)
+
+            prosody_loss_fn = EmotionProsodyTargetLoss()
+            prosody_loss_fn.to(device)
+
+            # Add prosody predictor parameters to optimizer
+            prosody_params = list(prosody_predictor.parameters())
+            optimizer.add_param_group({"params": prosody_params, "lr": args.lr})
+            print(f"Added {sum(p.numel() for p in prosody_params):,} prosody predictor parameters")
+            print("Prosody Loss initialized successfully")
+        else:
+            print("Warning: Prosody module not available, skipping prosody loss")
+
     # Training loop
     print(f"\n{'='*60}")
     print(f"Starting training for {args.epochs} epochs...")
@@ -1295,6 +1363,9 @@ Examples:
                     model, batch, device, optimizer,
                     batch_idx=batch_idx,
                     combined_loss_fn=combined_loss_fn,
+                    prosody_predictor=prosody_predictor,
+                    prosody_loss_fn=prosody_loss_fn,
+                    prosody_weight=args.prosody_weight,
                 )
                 if loss > 0.0:  # Only count valid losses
                     total_loss += loss
