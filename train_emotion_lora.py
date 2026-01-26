@@ -86,6 +86,19 @@ try:
 except ImportError:
     HAS_SER_FILTER_MODULE = False
 
+# V0.4: Advanced Training Utilities
+try:
+    from chatterbox.models.t3.modules.training_utils_v04 import (
+        DynamicEmotionLossWeight,
+        HardNegativeSampler,
+        EmotionCurriculum,
+        V04TrainingManager,
+        compute_emotion_accuracy,
+    )
+    HAS_V04_TRAINING = True
+except ImportError:
+    HAS_V04_TRAINING = False
+
 
 # =============================================================================
 # Dataset Configuration
@@ -631,6 +644,7 @@ def train_step(
     prosody_weight: float = 0.2,
     contrastive_loss_fn: Optional["SupervisedContrastiveLoss"] = None,
     contrastive_weight: float = 0.1,
+    v04_manager: Optional["V04TrainingManager"] = None,
 ) -> float:
     """Perform one training step with actual TTS loss."""
     model.t3.train()
@@ -937,6 +951,18 @@ def train_step(
                 if batch_idx < 5:
                     print(f"Warning: Contrastive loss computation failed: {e}")
 
+        # V0.4: Apply dynamic per-emotion loss weighting
+        loss_weight = 1.0
+        if v04_manager is not None:
+            # Get average weight for all emotions in batch
+            batch_weights = [v04_manager.get_loss_weight(e) for e in emotions]
+            loss_weight = sum(batch_weights) / len(batch_weights)
+            loss = loss * loss_weight
+
+            # Log weight occasionally
+            if batch_idx % 100 == 0:
+                print(f"  Batch {batch_idx} - V0.4 loss weight: {loss_weight:.3f}")
+
         # Backward pass
         loss.backward()
         
@@ -1089,6 +1115,20 @@ Examples:
     parser.add_argument("--filter_cache_path", type=str, default=None,
                        help="Path to cache filtered dataset (optional)")
 
+    # V0.4: Advanced Training Improvements
+    parser.add_argument("--use_dynamic_weights", action="store_true",
+                       help="Enable dynamic per-emotion loss weighting (V0.4)")
+    parser.add_argument("--use_curriculum", action="store_true",
+                       help="Enable curriculum learning (easy→hard emotions) (V0.4)")
+    parser.add_argument("--curriculum_warmup_epochs", type=int, default=2,
+                       help="Epochs before introducing hard emotions (default: 2)")
+    parser.add_argument("--use_hard_negatives", action="store_true",
+                       help="Enable hard negative mining for confusable emotions (V0.4)")
+    parser.add_argument("--hard_negative_ratio", type=float, default=0.3,
+                       help="Ratio of hard negatives in contrastive batches (default: 0.3)")
+    parser.add_argument("--v04_all", action="store_true",
+                       help="Enable all V0.4 training improvements")
+
     # Misc
     parser.add_argument("--download_data", action="store_true",
                        help="Download/setup data directory")
@@ -1154,6 +1194,12 @@ Examples:
             "contrastive_temperature": args.contrastive_temperature,
             "use_ser_filtering": args.use_ser_filtering,
             "min_agreement": args.min_agreement,
+            # V0.4
+            "use_dynamic_weights": args.use_dynamic_weights or args.v04_all,
+            "use_curriculum": args.use_curriculum or args.v04_all,
+            "curriculum_warmup_epochs": args.curriculum_warmup_epochs,
+            "use_hard_negatives": args.use_hard_negatives or args.v04_all,
+            "hard_negative_ratio": args.hard_negative_ratio,
         }
     )
 
@@ -1480,6 +1526,42 @@ Examples:
         else:
             print("Warning: Contrastive module not available, skipping contrastive loss")
 
+    # Setup V0.4 Training Manager
+    v04_manager = None
+    use_v04 = args.v04_all or args.use_dynamic_weights or args.use_curriculum or args.use_hard_negatives
+    if use_v04:
+        if HAS_V04_TRAINING:
+            print(f"\n{'='*60}")
+            print("Setting up V0.4 Training Improvements...")
+            print(f"  Dynamic loss weights: {args.use_dynamic_weights or args.v04_all}")
+            print(f"  Curriculum learning: {args.use_curriculum or args.v04_all}")
+            print(f"  Hard negative mining: {args.use_hard_negatives or args.v04_all}")
+            print(f"{'='*60}")
+
+            # Get unique emotions from dataset
+            dataset_emotions = list(set(emotion_dist.keys()))
+
+            v04_manager = V04TrainingManager(
+                emotions=dataset_emotions,
+                use_dynamic_weights=args.use_dynamic_weights or args.v04_all,
+                use_curriculum=args.use_curriculum or args.v04_all,
+                use_hard_negatives=args.use_hard_negatives or args.v04_all,
+                curriculum_warmup_epochs=args.curriculum_warmup_epochs,
+                hard_negative_ratio=args.hard_negative_ratio,
+            )
+            print("V0.4 Training Manager initialized successfully")
+
+            # Print curriculum schedule
+            if args.use_curriculum or args.v04_all:
+                print("\nCurriculum schedule:")
+                for ep in range(min(args.epochs, 5)):
+                    allowed = v04_manager.curriculum.get_allowed_emotions(ep)
+                    print(f"  Epoch {ep+1}: {allowed}")
+                if args.epochs > 5:
+                    print(f"  ... (showing first 5 of {args.epochs} epochs)")
+        else:
+            print("Warning: V0.4 training module not available, skipping V0.4 improvements")
+
     # Training loop
     print(f"\n{'='*60}")
     print(f"Starting training for {args.epochs} epochs...")
@@ -1498,10 +1580,46 @@ Examples:
         if early_stopped:
             break
 
+        # V0.4: Update curriculum and prepare for epoch
+        epoch_dataloader = dataloader
+        if v04_manager is not None:
+            v04_manager.on_epoch_start(epoch)
+
+            # Filter dataset for curriculum learning
+            if v04_manager.curriculum is not None:
+                allowed_emotions = v04_manager.curriculum.get_allowed_emotions(epoch)
+                print(f"\nCurriculum Epoch {epoch+1}: Training on emotions: {allowed_emotions}")
+
+                # Create filtered indices for this epoch
+                filtered_indices = []
+                base_dataset = dataset.dataset if hasattr(dataset, 'dataset') else dataset
+                for i in range(len(dataset)):
+                    try:
+                        if hasattr(dataset, 'indices'):
+                            # It's a Subset
+                            sample = base_dataset[dataset.indices[i]]
+                        else:
+                            sample = dataset[i]
+                        if sample.get("emotion", "") in allowed_emotions:
+                            filtered_indices.append(i)
+                    except Exception:
+                        continue
+
+                if filtered_indices:
+                    from torch.utils.data import Subset, DataLoader as TorchDataLoader
+                    epoch_subset = Subset(dataset, filtered_indices)
+                    epoch_dataloader = TorchDataLoader(
+                        epoch_subset,
+                        batch_size=args.batch_size,
+                        shuffle=True,
+                        num_workers=0,
+                    )
+                    print(f"  Using {len(filtered_indices)}/{len(dataset)} samples for this epoch")
+
         total_loss = 0.0
         valid_batches = 0
         epoch_batch_losses = []
-        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch+1}/{args.epochs}")
+        progress_bar = tqdm(epoch_dataloader, desc=f"Epoch {epoch+1}/{args.epochs}")
 
         for batch_idx, batch in enumerate(progress_bar):
             try:
@@ -1514,6 +1632,7 @@ Examples:
                     prosody_weight=args.prosody_weight,
                     contrastive_loss_fn=contrastive_loss_fn,
                     contrastive_weight=args.contrastive_weight,
+                    v04_manager=v04_manager,
                 )
                 if loss > 0.0:  # Only count valid losses
                     total_loss += loss
