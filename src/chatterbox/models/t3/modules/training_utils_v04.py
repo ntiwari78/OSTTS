@@ -174,16 +174,19 @@ class DynamicEmotionLossWeight(nn.Module):
             Weighted loss (scalar)
         """
         # Convert emotion names to indices if needed
+        # Note: indices must be on CPU to index into self.weights buffer
         if isinstance(emotion_labels, (list, tuple)):
             indices = torch.tensor(
                 [self.emotion_to_idx.get(e, 0) for e in emotion_labels],
-                device=loss.device
+                device="cpu"  # Keep on CPU to match weights buffer
             )
         else:
-            indices = emotion_labels
+            indices = emotion_labels.cpu()  # Move to CPU if on GPU
 
-        # Get weights for each sample
+        # Get weights for each sample (weights are on CPU)
         sample_weights = self.weights[indices]
+        # Move weights to same device as loss for computation
+        sample_weights = sample_weights.to(loss.device)
 
         # Apply weights
         if loss.dim() == 0:
