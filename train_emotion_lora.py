@@ -952,16 +952,15 @@ def train_step(
                     print(f"Warning: Contrastive loss computation failed: {e}")
 
         # V0.4: Apply dynamic per-emotion loss weighting
-        loss_weight = 1.0
-        if v04_manager is not None:
-            # Get average weight for all emotions in batch
-            batch_weights = [v04_manager.get_loss_weight(e) for e in emotions]
-            loss_weight = sum(batch_weights) / len(batch_weights)
-            loss = loss * loss_weight
+        if v04_manager is not None and v04_manager.use_dynamic_weights:
+            # Apply dynamic weights through the manager
+            loss = v04_manager.apply_loss_weights(loss, list(emotions), predictions=None)
 
-            # Log weight occasionally
+            # Log weights occasionally
             if batch_idx % 100 == 0:
-                print(f"  Batch {batch_idx} - V0.4 loss weight: {loss_weight:.3f}")
+                weights_dict = v04_manager.loss_weight.get_weights_dict()
+                avg_weight = sum(weights_dict.values()) / len(weights_dict) if weights_dict else 1.0
+                print(f"  Batch {batch_idx} - V0.4 avg loss weight: {avg_weight:.3f}")
 
         # Backward pass
         loss.backward()
@@ -1542,12 +1541,11 @@ Examples:
             dataset_emotions = list(set(emotion_dist.keys()))
 
             v04_manager = V04TrainingManager(
-                emotions=dataset_emotions,
+                emotion_names=dataset_emotions,
+                total_epochs=args.epochs,
                 use_dynamic_weights=args.use_dynamic_weights or args.v04_all,
                 use_curriculum=args.use_curriculum or args.v04_all,
-                use_hard_negatives=args.use_hard_negatives or args.v04_all,
-                curriculum_warmup_epochs=args.curriculum_warmup_epochs,
-                hard_negative_ratio=args.hard_negative_ratio,
+                hard_negative_ratio=args.hard_negative_ratio if (args.use_hard_negatives or args.v04_all) else 0.0,
             )
             print("V0.4 Training Manager initialized successfully")
 
@@ -1555,7 +1553,7 @@ Examples:
             if args.use_curriculum or args.v04_all:
                 print("\nCurriculum schedule:")
                 for ep in range(min(args.epochs, 5)):
-                    allowed = v04_manager.curriculum.get_allowed_emotions(ep)
+                    allowed = v04_manager.curriculum.get_emotions_for_epoch(ep)
                     print(f"  Epoch {ep+1}: {allowed}")
                 if args.epochs > 5:
                     print(f"  ... (showing first 5 of {args.epochs} epochs)")
@@ -1587,7 +1585,7 @@ Examples:
 
             # Filter dataset for curriculum learning
             if v04_manager.curriculum is not None:
-                allowed_emotions = v04_manager.curriculum.get_allowed_emotions(epoch)
+                allowed_emotions = v04_manager.curriculum.get_emotions_for_epoch(epoch)
                 print(f"\nCurriculum Epoch {epoch+1}: Training on emotions: {allowed_emotions}")
 
                 # Create filtered indices for this epoch
