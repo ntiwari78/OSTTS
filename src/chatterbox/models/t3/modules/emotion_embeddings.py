@@ -138,15 +138,188 @@ class IntensityTransform(nn.Module):
 #   Arousal: high energy (angry/excited) to low energy (calm/sad)
 #   Dominance: strong/confident to weak/submissive
 
-def _create_64d_embedding(vad: List[float], prosodic: List[float]) -> List[float]:
-    """Helper to create 64D embedding from VAD and prosodic features."""
-    # VAD: 3 dimensions
-    # Prosodic: 13 dimensions (pitch_mean, pitch_range, pitch_contour, energy_mean,
-    #           energy_range, speaking_rate, rhythm, voice_quality, breathiness,
-    #           tension, nasality, jitter, shimmer)
-    # Fine-grained: 48 dimensions (initialized to small random-like values)
-    fine_grained = [0.0] * 48  # Will be learned during training
+def _create_64d_embedding(
+    vad: List[float],
+    prosodic: List[float],
+    fine_grained: Optional[List[float]] = None,
+) -> List[float]:
+    """Helper to create 64D embedding from VAD, prosodic, and fine-grained features.
+
+    Args:
+        vad: 3 dimensions (Valence, Arousal, Dominance)
+        prosodic: 13 dimensions (pitch_mean, pitch_range, pitch_contour, energy_mean,
+                  energy_range, speaking_rate, rhythm, voice_quality, breathiness,
+                  tension, nasality, jitter, shimmer)
+        fine_grained: 48 dimensions for fine-grained features. If None, uses zeros.
+                     V0.4: Use emotion-specific patterns instead of zeros.
+
+    Returns:
+        64D embedding list
+    """
+    if fine_grained is None:
+        fine_grained = [0.0] * 48
     return vad + prosodic + fine_grained
+
+
+# =============================================================================
+# V0.4: Fine-grained Emotion Patterns (48 dimensions)
+# =============================================================================
+# Fine-grained dimensions (indices 16-63) are organized as:
+#   Dims 16-23 (8D): Formant patterns (F1-F4 centers and spreads)
+#   Dims 24-31 (8D): Spectral tilt and harmonics
+#   Dims 32-39 (8D): Voice onset/offset characteristics
+#   Dims 40-47 (8D): Micro-prosodic patterns (within-syllable variations)
+#   Dims 48-55 (8D): Breath patterns and pauses
+#   Dims 56-63 (8D): Global emotion discriminators
+# =============================================================================
+
+def _create_fine_grained_pattern(
+    formants: List[float],      # 8D: Formant characteristics
+    spectral: List[float],      # 8D: Spectral properties
+    voice_onset: List[float],   # 8D: Voice onset/offset
+    micro_prosody: List[float], # 8D: Micro-prosodic patterns
+    breath: List[float],        # 8D: Breath and pause patterns
+    discriminator: List[float], # 8D: Global emotion discriminator
+) -> List[float]:
+    """Create 48D fine-grained embedding from component patterns.
+
+    This provides emotion-specific initialization for the fine-grained
+    dimensions, improving initial emotion discrimination.
+    """
+    return formants + spectral + voice_onset + micro_prosody + breath + discriminator
+
+
+# Pre-defined fine-grained patterns for each emotion
+FINE_GRAINED_PATTERNS = {
+    "neutral": _create_fine_grained_pattern(
+        formants=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        spectral=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        voice_onset=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        micro_prosody=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        breath=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        discriminator=[1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Neutral identity
+    ),
+    "happy": _create_fine_grained_pattern(
+        formants=[0.3, 0.2, 0.4, 0.2, 0.1, 0.2, 0.1, 0.0],  # Higher formants
+        spectral=[0.4, 0.3, 0.2, 0.1, 0.0, 0.2, 0.1, 0.0],  # Brighter spectrum
+        voice_onset=[0.2, 0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0],  # Crisp onset
+        micro_prosody=[0.3, 0.4, 0.2, 0.1, 0.2, 0.1, 0.0, 0.0],  # Lively variations
+        breath=[0.0, 0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Light breath
+        discriminator=[0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Happy identity
+    ),
+    "sad": _create_fine_grained_pattern(
+        formants=[-0.2, -0.1, -0.2, -0.1, 0.0, -0.1, 0.0, 0.0],  # Lower formants
+        spectral=[-0.3, -0.2, -0.1, 0.0, 0.1, -0.1, 0.0, 0.0],  # Darker spectrum
+        voice_onset=[-0.1, 0.0, 0.1, 0.1, 0.0, 0.1, 0.0, 0.0],  # Soft onset
+        micro_prosody=[-0.2, -0.2, -0.1, 0.0, -0.1, 0.0, 0.0, 0.0],  # Flat variations
+        breath=[0.2, 0.1, 0.2, 0.1, 0.1, 0.0, 0.0, 0.0],  # Sighing breath
+        discriminator=[0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Sad identity
+    ),
+    "angry": _create_fine_grained_pattern(
+        formants=[0.4, 0.3, 0.2, 0.3, 0.2, 0.1, 0.2, 0.1],  # Raised formants
+        spectral=[0.5, 0.6, 0.4, 0.3, 0.2, 0.3, 0.2, 0.1],  # Harsh spectrum
+        voice_onset=[0.5, 0.4, 0.3, 0.2, 0.3, 0.2, 0.1, 0.0],  # Hard onset
+        micro_prosody=[0.4, 0.5, 0.3, 0.4, 0.3, 0.2, 0.1, 0.0],  # Tense variations
+        breath=[-0.2, -0.1, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0],  # Controlled breath
+        discriminator=[0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0],  # Angry identity
+    ),
+    "fearful": _create_fine_grained_pattern(
+        formants=[0.2, 0.1, 0.3, 0.2, 0.1, 0.2, 0.1, 0.0],  # Raised formants
+        spectral=[0.2, 0.3, 0.2, 0.1, 0.0, 0.1, 0.1, 0.0],  # Tense spectrum
+        voice_onset=[0.1, 0.2, 0.2, 0.1, 0.2, 0.1, 0.0, 0.0],  # Hesitant onset
+        micro_prosody=[0.3, 0.4, 0.3, 0.4, 0.3, 0.2, 0.2, 0.1],  # Trembling variations
+        breath=[0.3, 0.4, 0.2, 0.2, 0.1, 0.1, 0.0, 0.0],  # Irregular breath
+        discriminator=[0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0],  # Fearful identity
+    ),
+    "disgusted": _create_fine_grained_pattern(
+        formants=[0.1, -0.1, 0.0, 0.1, 0.2, 0.0, 0.1, 0.0],  # Modified formants
+        spectral=[0.1, 0.2, 0.3, 0.2, 0.1, 0.0, 0.1, 0.0],  # Nasal spectrum
+        voice_onset=[0.2, 0.1, 0.0, -0.1, 0.0, 0.0, 0.0, 0.0],  # Tense onset
+        micro_prosody=[0.1, 0.0, -0.1, 0.0, 0.1, 0.0, 0.0, 0.0],  # Constricted
+        breath=[0.1, 0.0, 0.1, 0.2, 0.1, 0.0, 0.0, 0.0],  # Retching breath
+        discriminator=[0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0],  # Disgusted identity
+    ),
+    "surprised": _create_fine_grained_pattern(
+        formants=[0.4, 0.3, 0.5, 0.3, 0.2, 0.3, 0.1, 0.0],  # Wide formants
+        spectral=[0.3, 0.4, 0.3, 0.2, 0.1, 0.2, 0.1, 0.0],  # Bright spectrum
+        voice_onset=[0.4, 0.3, 0.2, 0.1, 0.2, 0.1, 0.0, 0.0],  # Abrupt onset
+        micro_prosody=[0.5, 0.4, 0.3, 0.2, 0.3, 0.2, 0.1, 0.0],  # Dynamic variations
+        breath=[0.3, 0.2, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0],  # Gasping breath
+        discriminator=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0],  # Surprised identity
+    ),
+    "excited": _create_fine_grained_pattern(
+        formants=[0.4, 0.3, 0.4, 0.3, 0.2, 0.3, 0.2, 0.1],  # Raised formants
+        spectral=[0.5, 0.4, 0.3, 0.2, 0.1, 0.2, 0.1, 0.0],  # Energetic spectrum
+        voice_onset=[0.3, 0.2, 0.1, 0.1, 0.2, 0.1, 0.0, 0.0],  # Quick onset
+        micro_prosody=[0.5, 0.5, 0.4, 0.3, 0.4, 0.3, 0.2, 0.1],  # High energy variations
+        breath=[0.1, 0.2, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0],  # Energetic breath
+        discriminator=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0],  # Excited identity
+    ),
+    "calm": _create_fine_grained_pattern(
+        formants=[-0.1, 0.0, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0],  # Relaxed formants
+        spectral=[-0.2, -0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0],  # Smooth spectrum
+        voice_onset=[-0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Gentle onset
+        micro_prosody=[-0.2, -0.1, -0.1, 0.0, -0.1, 0.0, 0.0, 0.0],  # Minimal variations
+        breath=[0.1, 0.0, 0.1, 0.0, 0.0, 0.1, 0.0, 0.0],  # Relaxed breath
+        discriminator=[0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5],  # Calm = neutral-like + relaxed
+    ),
+    "whisper": _create_fine_grained_pattern(
+        formants=[-0.3, -0.2, -0.2, -0.1, 0.0, -0.1, 0.0, 0.0],  # Muted formants
+        spectral=[-0.4, -0.3, -0.2, -0.1, 0.2, 0.1, 0.0, 0.0],  # Noise-like spectrum
+        voice_onset=[-0.2, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Soft onset
+        micro_prosody=[-0.1, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Minimal variation
+        breath=[0.5, 0.4, 0.3, 0.2, 0.2, 0.1, 0.0, 0.0],  # Heavy breath noise
+        discriminator=[0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.7],  # Whisper identity
+    ),
+    "shout": _create_fine_grained_pattern(
+        formants=[0.5, 0.4, 0.3, 0.4, 0.3, 0.2, 0.2, 0.1],  # Strained formants
+        spectral=[0.6, 0.7, 0.5, 0.4, 0.3, 0.3, 0.2, 0.1],  # Harsh spectrum
+        voice_onset=[0.5, 0.4, 0.3, 0.2, 0.3, 0.2, 0.1, 0.0],  # Explosive onset
+        micro_prosody=[0.3, 0.4, 0.3, 0.2, 0.3, 0.2, 0.1, 0.0],  # Intense variations
+        breath=[-0.3, -0.2, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0],  # Pressed breath
+        discriminator=[0.0, 0.0, 0.0, 0.7, 0.0, 0.0, 0.0, 0.3],  # Shout = angry-like + excited
+    ),
+    "sarcastic": _create_fine_grained_pattern(
+        formants=[0.1, 0.2, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0],  # Slightly raised
+        spectral=[0.1, 0.2, 0.2, 0.1, 0.0, 0.1, 0.0, 0.0],  # Nasal tinge
+        voice_onset=[0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Normal onset
+        micro_prosody=[0.3, 0.4, 0.3, 0.2, 0.2, 0.1, 0.1, 0.0],  # Exaggerated contours
+        breath=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Normal breath
+        discriminator=[0.2, 0.3, 0.0, 0.2, 0.0, 0.3, 0.0, 0.0],  # Mixed identity
+    ),
+    "bored": _create_fine_grained_pattern(
+        formants=[-0.2, -0.1, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0],  # Flat formants
+        spectral=[-0.2, -0.1, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0],  # Dull spectrum
+        voice_onset=[-0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Lazy onset
+        micro_prosody=[-0.3, -0.3, -0.2, -0.1, -0.1, 0.0, 0.0, 0.0],  # Minimal variation
+        breath=[0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Sighing
+        discriminator=[0.4, 0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.3],  # Bored = neutral + sad-like
+    ),
+    "affectionate": _create_fine_grained_pattern(
+        formants=[0.1, 0.1, 0.2, 0.1, 0.0, 0.1, 0.0, 0.0],  # Warm formants
+        spectral=[0.1, 0.2, 0.1, 0.0, 0.0, 0.1, 0.0, 0.0],  # Soft spectrum
+        voice_onset=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Gentle onset
+        micro_prosody=[0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.0, 0.0],  # Gentle variations
+        breath=[0.2, 0.1, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0],  # Soft breath
+        discriminator=[0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5],  # Affection = happy + calm
+    ),
+    "contemptuous": _create_fine_grained_pattern(
+        formants=[0.1, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0],  # Nasal formants
+        spectral=[0.1, 0.2, 0.2, 0.1, 0.0, 0.1, 0.0, 0.0],  # Nasal spectrum
+        voice_onset=[0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],  # Dismissive onset
+        micro_prosody=[0.1, 0.0, -0.1, 0.0, 0.0, 0.0, 0.0, 0.0],  # Flat with scoff
+        breath=[0.1, 0.0, 0.0, 0.1, 0.0, 0.0, 0.0, 0.0],  # Snort breath
+        discriminator=[0.0, 0.0, 0.0, 0.3, 0.0, 0.5, 0.0, 0.2],  # Contempt = angry + disgust
+    ),
+    "awed": _create_fine_grained_pattern(
+        formants=[0.2, 0.1, 0.3, 0.2, 0.1, 0.2, 0.1, 0.0],  # Open formants
+        spectral=[0.2, 0.3, 0.2, 0.1, 0.0, 0.1, 0.0, 0.0],  # Bright spectrum
+        voice_onset=[0.1, 0.1, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0],  # Soft onset
+        micro_prosody=[0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.0, 0.0],  # Wonder variations
+        breath=[0.3, 0.2, 0.1, 0.1, 0.1, 0.0, 0.0, 0.0],  # Gasping wonder
+        discriminator=[0.0, 0.2, 0.0, 0.0, 0.2, 0.0, 0.4, 0.2],  # Awe = happy + fearful + surprised
+    ),
+}
 
 
 # =============================================================================
@@ -169,134 +342,135 @@ def _create_64d_embedding(vad: List[float], prosodic: List[float]) -> List[float
 # =============================================================================
 
 EMOTION_INIT_EMBEDDINGS_64D = {
-    # Neutral: baseline, all zeros
+    # Neutral: baseline, all zeros with neutral discriminator
     "neutral": _create_64d_embedding(
         vad=[0.0, 0.0, 0.0],
-        prosodic=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        prosodic=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        fine_grained=FINE_GRAINED_PATTERNS["neutral"],
     ),
 
     # Happy: positive valence, high arousal, medium dominance
     # ENHANCED: Increased pitch, energy, and speaking rate for better recognition
     "happy": _create_64d_embedding(
         vad=[0.9, 0.8, 0.5],  # Increased from [0.8, 0.6, 0.4]
-        prosodic=[0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5, 0.3, -0.3, -0.2, 0.0, 0.15, 0.15]
-        # Was:   [0.5, 0.4, 0.3, 0.4, 0.3, 0.2, 0.3, 0.2, -0.2, -0.1, 0.0, 0.1, 0.1]
+        prosodic=[0.7, 0.6, 0.5, 0.6, 0.5, 0.4, 0.5, 0.3, -0.3, -0.2, 0.0, 0.15, 0.15],
+        fine_grained=FINE_GRAINED_PATTERNS["happy"],
     ),
 
     # Sad: negative valence, low arousal, low dominance
     # ENHANCED: Lower pitch, less energy, slower rate for clearer sadness
     "sad": _create_64d_embedding(
         vad=[-0.8, -0.7, -0.5],  # Increased from [-0.7, -0.5, -0.4]
-        prosodic=[-0.6, -0.5, -0.4, -0.7, -0.4, -0.6, -0.5, -0.3, 0.4, -0.3, 0.0, 0.05, 0.15]
-        # Was:   [-0.4, -0.3, -0.2, -0.5, -0.2, -0.4, -0.3, -0.2, 0.3, -0.2, 0.0, 0.0, 0.1]
+        prosodic=[-0.6, -0.5, -0.4, -0.7, -0.4, -0.6, -0.5, -0.3, 0.4, -0.3, 0.0, 0.05, 0.15],
+        fine_grained=FINE_GRAINED_PATTERNS["sad"],
     ),
 
     # Angry: negative valence, very high arousal, high dominance
     # ENHANCED: Maximum energy, tension, faster rate for unmistakable anger
     "angry": _create_64d_embedding(
         vad=[-0.6, 1.0, 0.9],  # Increased from [-0.5, 0.9, 0.7]
-        prosodic=[0.5, 0.8, 0.6, 1.0, 0.7, 0.5, 0.6, -0.4, -0.4, 0.9, 0.15, 0.3, 0.3]
-        # Was:   [0.3, 0.6, 0.4, 0.8, 0.5, 0.3, 0.4, -0.3, -0.3, 0.6, 0.1, 0.2, 0.2]
+        prosodic=[0.5, 0.8, 0.6, 1.0, 0.7, 0.5, 0.6, -0.4, -0.4, 0.9, 0.15, 0.3, 0.3],
+        fine_grained=FINE_GRAINED_PATTERNS["angry"],
     ),
 
     # Excited: very positive valence, very high arousal, high dominance
     # ENHANCED: High energy and fast rate
     "excited": _create_64d_embedding(
         vad=[1.0, 1.0, 0.7],  # Increased from [0.9, 0.9, 0.6]
-        prosodic=[0.8, 0.9, 0.7, 0.9, 0.7, 0.7, 0.7, 0.4, -0.3, 0.3, 0.0, 0.25, 0.15]
-        # Was:   [0.6, 0.7, 0.5, 0.7, 0.5, 0.5, 0.5, 0.3, -0.2, 0.2, 0.0, 0.2, 0.1]
+        prosodic=[0.8, 0.9, 0.7, 0.9, 0.7, 0.7, 0.7, 0.4, -0.3, 0.3, 0.0, 0.25, 0.15],
+        fine_grained=FINE_GRAINED_PATTERNS["excited"],
     ),
 
     # Calm: slightly positive valence, very low arousal, medium dominance
     # ENHANCED: Lower energy and slower rate
     "calm": _create_64d_embedding(
         vad=[0.4, -0.9, 0.3],  # Adjusted from [0.3, -0.7, 0.2]
-        prosodic=[-0.5, -0.6, -0.5, -0.6, -0.5, -0.7, -0.6, 0.4, 0.3, -0.6, 0.0, -0.15, -0.15]
-        # Was:   [-0.3, -0.4, -0.3, -0.4, -0.3, -0.5, -0.4, 0.3, 0.2, -0.4, 0.0, -0.1, -0.1]
+        prosodic=[-0.5, -0.6, -0.5, -0.6, -0.5, -0.7, -0.6, 0.4, 0.3, -0.6, 0.0, -0.15, -0.15],
+        fine_grained=FINE_GRAINED_PATTERNS["calm"],
     ),
 
     # Surprised: positive valence, high arousal, low dominance
     # ENHANCED: Very high pitch range for unmistakable surprise
     "surprised": _create_64d_embedding(
         vad=[0.5, 1.0, -0.3],  # Increased from [0.4, 0.8, -0.2]
-        prosodic=[0.9, 1.0, 0.8, 0.7, 0.6, 0.3, 0.4, 0.2, 0.15, 0.2, 0.0, 0.15, 0.15]
-        # Was:   [0.7, 0.8, 0.6, 0.5, 0.4, 0.2, 0.3, 0.1, 0.1, 0.1, 0.0, 0.1, 0.1]
+        prosodic=[0.9, 1.0, 0.8, 0.7, 0.6, 0.3, 0.4, 0.2, 0.15, 0.2, 0.0, 0.15, 0.15],
+        fine_grained=FINE_GRAINED_PATTERNS["surprised"],
     ),
 
     # Fearful: negative valence, high arousal, very low dominance
     # ENHANCED: Higher tension and tremor for clearer fear
     "fearful": _create_64d_embedding(
         vad=[-0.7, 0.9, -0.8],  # Adjusted from [-0.6, 0.7, -0.6]
-        prosodic=[0.6, 0.7, 0.5, 0.4, 0.6, 0.5, 0.3, -0.3, 0.3, 0.6, 0.15, 0.4, 0.3]
-        # Was:   [0.4, 0.5, 0.3, 0.3, 0.4, 0.3, 0.2, -0.2, 0.2, 0.4, 0.1, 0.3, 0.2]
+        prosodic=[0.6, 0.7, 0.5, 0.4, 0.6, 0.5, 0.3, -0.3, 0.3, 0.6, 0.15, 0.4, 0.3],
+        fine_grained=FINE_GRAINED_PATTERNS["fearful"],
     ),
 
     # Disgusted: negative valence, medium arousal, medium dominance
     # ENHANCED: More nasal quality and tension
     "disgusted": _create_64d_embedding(
         vad=[-0.7, 0.4, 0.4],  # Adjusted from [-0.6, 0.3, 0.3]
-        prosodic=[0.1, 0.3, 0.2, 0.3, 0.3, -0.2, 0.15, -0.4, 0.0, 0.5, 0.3, 0.15, 0.15]
-        # Was:   [0.0, 0.2, 0.1, 0.2, 0.2, -0.1, 0.1, -0.3, 0.0, 0.3, 0.2, 0.1, 0.1]
+        prosodic=[0.1, 0.3, 0.2, 0.3, 0.3, -0.2, 0.15, -0.4, 0.0, 0.5, 0.3, 0.15, 0.15],
+        fine_grained=FINE_GRAINED_PATTERNS["disgusted"],
     ),
 
     # Whisper: neutral valence, very low arousal, low dominance
     # ENHANCED: Maximum breathiness and minimum energy
     "whisper": _create_64d_embedding(
         vad=[0.0, -1.0, -0.7],  # Adjusted from [0.0, -0.8, -0.5]
-        prosodic=[-0.7, -0.6, -0.5, -1.0, -0.6, -0.4, -0.4, -0.5, 0.8, -0.7, 0.0, 0.0, 0.0]
-        # Was:   [-0.5, -0.4, -0.3, -0.8, -0.4, -0.3, -0.3, -0.4, 0.6, -0.5, 0.0, 0.0, 0.0]
+        prosodic=[-0.7, -0.6, -0.5, -1.0, -0.6, -0.4, -0.4, -0.5, 0.8, -0.7, 0.0, 0.0, 0.0],
+        fine_grained=FINE_GRAINED_PATTERNS["whisper"],
     ),
 
     # Shout: positive valence, maximum arousal, maximum dominance
     # ENHANCED: Maximum energy and tension
     "shout": _create_64d_embedding(
         vad=[0.4, 1.0, 1.0],  # Adjusted from [0.3, 1.0, 0.9]
-        prosodic=[0.6, 0.7, 0.5, 1.0, 0.8, 0.3, 0.5, -0.3, -0.5, 0.9, 0.15, 0.4, 0.4]
-        # Was:   [0.4, 0.5, 0.3, 1.0, 0.6, 0.2, 0.4, -0.2, -0.4, 0.7, 0.1, 0.3, 0.3]
+        prosodic=[0.6, 0.7, 0.5, 1.0, 0.8, 0.3, 0.5, -0.3, -0.5, 0.9, 0.15, 0.4, 0.4],
+        fine_grained=FINE_GRAINED_PATTERNS["shout"],
     ),
 
     # =========================================================================
-    # New emotions (v0.2.1) - 5 additional emotions (ENHANCED)
+    # New emotions (v0.2.1) - 5 additional emotions (ENHANCED with V0.4 patterns)
     # =========================================================================
 
     # Sarcastic: slightly negative valence, medium arousal, medium-high dominance
     # ENHANCED: More exaggerated intonation patterns
     "sarcastic": _create_64d_embedding(
         vad=[-0.3, 0.4, 0.5],  # Adjusted from [-0.2, 0.3, 0.4]
-        prosodic=[0.3, 0.7, 0.6, 0.3, 0.4, -0.15, 0.4, -0.3, 0.0, 0.15, 0.15, 0.15, 0.0]
-        # Was:   [0.2, 0.5, 0.4, 0.2, 0.3, -0.1, 0.3, -0.2, 0.0, 0.1, 0.1, 0.1, 0.0]
+        prosodic=[0.3, 0.7, 0.6, 0.3, 0.4, -0.15, 0.4, -0.3, 0.0, 0.15, 0.15, 0.15, 0.0],
+        fine_grained=FINE_GRAINED_PATTERNS["sarcastic"],
     ),
 
     # Bored: negative valence, very low arousal, low dominance
     # ENHANCED: Flatter intonation, slower rate
     "bored": _create_64d_embedding(
         vad=[-0.4, -0.8, -0.3],  # Adjusted from [-0.3, -0.6, -0.2]
-        prosodic=[-0.5, -0.7, -0.6, -0.6, -0.5, -0.7, -0.6, -0.15, 0.15, -0.4, 0.0, 0.0, 0.0]
-        # Was:   [-0.3, -0.5, -0.4, -0.4, -0.3, -0.5, -0.4, -0.1, 0.1, -0.3, 0.0, 0.0, 0.0]
+        prosodic=[-0.5, -0.7, -0.6, -0.6, -0.5, -0.7, -0.6, -0.15, 0.15, -0.4, 0.0, 0.0, 0.0],
+        fine_grained=FINE_GRAINED_PATTERNS["bored"],
     ),
 
     # Affectionate: very positive valence, medium-low arousal, medium dominance
     # ENHANCED: Warmer tone, softer voice
     "affectionate": _create_64d_embedding(
         vad=[1.0, 0.4, 0.4],  # Adjusted from [0.9, 0.3, 0.3]
-        prosodic=[0.3, 0.4, 0.3, 0.15, 0.3, -0.3, 0.3, 0.5, 0.4, -0.4, 0.0, 0.0, 0.0]
-        # Was:   [0.2, 0.3, 0.2, 0.1, 0.2, -0.2, 0.2, 0.4, 0.3, -0.3, 0.0, 0.0, 0.0]
+        prosodic=[0.3, 0.4, 0.3, 0.15, 0.3, -0.3, 0.3, 0.5, 0.4, -0.4, 0.0, 0.0, 0.0],
+        fine_grained=FINE_GRAINED_PATTERNS["affectionate"],
     ),
 
     # Contemptuous: negative valence, low-medium arousal, high dominance
     # ENHANCED: More dismissive tone
     "contemptuous": _create_64d_embedding(
         vad=[-0.6, 0.2, 0.7],  # Adjusted from [-0.5, 0.1, 0.6]
-        prosodic=[0.1, 0.3, 0.15, 0.15, 0.3, -0.3, 0.15, -0.4, 0.0, 0.3, 0.3, 0.15, 0.0]
-        # Was:   [0.0, 0.2, 0.1, 0.1, 0.2, -0.2, 0.1, -0.3, 0.0, 0.2, 0.2, 0.1, 0.0]
+        prosodic=[0.1, 0.3, 0.15, 0.15, 0.3, -0.3, 0.15, -0.4, 0.0, 0.3, 0.3, 0.15, 0.0],
+        fine_grained=FINE_GRAINED_PATTERNS["contemptuous"],
     ),
 
     # Awed: positive valence, medium-high arousal, low dominance
     # ENHANCED: More breathy, wider pitch range
     "awed": _create_64d_embedding(
         vad=[0.7, 0.6, -0.4],  # Adjusted from [0.6, 0.5, -0.3]
-        prosodic=[0.4, 0.7, 0.6, 0.4, 0.4, -0.3, 0.3, 0.3, 0.5, -0.15, 0.0, 0.15, 0.0]
-        # Was:   [0.3, 0.5, 0.4, 0.3, 0.3, -0.2, 0.2, 0.2, 0.3, -0.1, 0.0, 0.1, 0.0]
+        prosodic=[0.4, 0.7, 0.6, 0.4, 0.4, -0.3, 0.3, 0.3, 0.5, -0.15, 0.0, 0.15, 0.0],
+        fine_grained=FINE_GRAINED_PATTERNS["awed"],
     ),
 }
 

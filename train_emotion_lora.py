@@ -141,7 +141,7 @@ DATASET_CONFIGS = {
     ),
     "iesc": DatasetConfig(
         name="iesc",
-        default_path="data/iesc_emotions",
+        default_path="data/hindi_emotions",
         emotion_mapping={
             "emotion_neutral": "neutral",
             "emotion_happy": "happy",

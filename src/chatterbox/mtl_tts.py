@@ -19,6 +19,18 @@ from .models.voice_encoder import VoiceEncoder
 from .models.t3.modules.cond_enc import T3Cond
 from .models.t3.modules.emotion_embeddings import EmotionEmbeddings
 
+# V0.4: Import intensity calibration
+try:
+    from .models.t3.modules.emotion_intensity_calibration import (
+        get_calibrated_intensity,
+        get_calibration_multiplier,
+        CALIBRATED_INTENSITIES,
+    )
+    HAS_CALIBRATION = True
+except ImportError:
+    HAS_CALIBRATION = False
+    CALIBRATED_INTENSITIES = {}
+
 
 REPO_ID = "ResembleAI/chatterbox"
 
@@ -336,6 +348,7 @@ class ChatterboxMultilingualTTS:
         emotion: Optional[str] = None,
         emotion_intensity: float = 1.0,
         emotion_blend: Optional[Dict[str, float]] = None,
+        use_calibration: bool = True,
     ) -> torch.Tensor:
         """
         Get emotion embedding based on provided parameters.
@@ -344,19 +357,42 @@ class ChatterboxMultilingualTTS:
             emotion: Single emotion name (e.g., "happy")
             emotion_intensity: Intensity multiplier (0.0 = neutral, 1.0 = full, >1.0 = exaggerated)
             emotion_blend: Dict of emotion names to weights for blending
+            use_calibration: Whether to apply V0.4 intensity calibration (default: True)
+                            Calibration adjusts intensity based on SER recognition patterns.
+                            E.g., angry gets boosted to 1.5x for better recognition.
 
         Returns:
             Emotion embedding tensor (1, emotion_dim)
         """
         if emotion_blend is not None:
             # Blend multiple emotions
+            # For blending, apply calibration to each emotion's contribution
+            if use_calibration and HAS_CALIBRATION:
+                calibrated_blend = {}
+                for em, weight in emotion_blend.items():
+                    calibration = get_calibration_multiplier(em)
+                    # Apply calibration to the weight contribution
+                    calibrated_blend[em] = weight * calibration
+                # Renormalize weights
+                total = sum(calibrated_blend.values())
+                if total > 0:
+                    calibrated_blend = {k: v / total for k, v in calibrated_blend.items()}
+                emotion_blend = calibrated_blend
             return self.emotion_embeddings.interpolate_emotions(
                 emotion_blend, device=self.device
             )
         elif emotion is not None:
             # Single emotion with intensity
+            # V0.4: Apply calibration to intensity
+            calibrated_intensity = emotion_intensity
+            if use_calibration and HAS_CALIBRATION:
+                calibrated_intensity = get_calibrated_intensity(
+                    emotion=emotion,
+                    user_intensity=emotion_intensity,
+                    use_calibration=True,
+                )
             return self.emotion_embeddings.get_emotion_embedding(
-                emotion, intensity=emotion_intensity, device=self.device
+                emotion, intensity=calibrated_intensity, device=self.device
             )
         else:
             # Default to neutral
@@ -370,6 +406,7 @@ class ChatterboxMultilingualTTS:
         emotion: Optional[str] = None,
         emotion_intensity: float = 1.0,
         emotion_blend: Optional[Dict[str, float]] = None,
+        use_calibration: bool = True,
     ):
         """
         Prepare conditioning data from a reference audio file.
@@ -379,6 +416,7 @@ class ChatterboxMultilingualTTS:
             emotion: Emotion type (e.g., "happy", "sad"). Default: "neutral"
             emotion_intensity: Intensity of the emotion (0.0-1.5). Default: 1.0
             emotion_blend: Dict of emotion names to weights for blending multiple emotions
+            use_calibration: Whether to apply V0.4 intensity calibration (default: True)
         """
         # Load reference wav
         s3gen_ref_wav, _sr = librosa.load(wav_fpath, sr=S3GEN_SR)
@@ -399,8 +437,10 @@ class ChatterboxMultilingualTTS:
         ve_embed = torch.from_numpy(self.ve.embeds_from_wavs([ref_16k_wav], sample_rate=S3_SR))
         ve_embed = ve_embed.mean(axis=0, keepdim=True).to(self.device)
 
-        # Get emotion embedding
-        emotion_embed = self._get_emotion_embedding(emotion, emotion_intensity, emotion_blend)
+        # Get emotion embedding (with V0.4 calibration)
+        emotion_embed = self._get_emotion_embedding(
+            emotion, emotion_intensity, emotion_blend, use_calibration=use_calibration
+        )
 
         t3_cond = T3Cond(
             speaker_emb=ve_embed,
@@ -417,6 +457,7 @@ class ChatterboxMultilingualTTS:
         emotion: str = "neutral",
         emotion_intensity: float = 1.0,
         emotion_blend: Optional[Dict[str, float]] = None,
+        use_calibration: bool = True,
         cfg_weight: float = 0.5,
         temperature: float = 0.8,
         repetition_penalty: float = 2.0,
@@ -435,6 +476,12 @@ class ChatterboxMultilingualTTS:
             emotion_intensity: Emotion intensity (0.0 = neutral, 1.0 = full, >1.0 = exaggerated)
             emotion_blend: Dict of emotion names to weights for blending.
                           Example: {"happy": 0.7, "excited": 0.3}
+            use_calibration: Whether to apply V0.4 intensity calibration (default: True).
+                            Calibration automatically adjusts intensity based on SER analysis:
+                            - angry: 1.5x boost (often misclassified as neutral)
+                            - disgusted: 1.4x boost (needs clearer markers)
+                            - calm: 0.8x reduction (to differentiate from neutral)
+                            Set to False for raw intensity control.
             cfg_weight: Classifier-free guidance weight
             temperature: Sampling temperature
             repetition_penalty: Penalty for repeated tokens
@@ -445,16 +492,20 @@ class ChatterboxMultilingualTTS:
             Audio tensor (1, num_samples) at 24kHz
 
         Examples:
-            >>> # Basic generation
+            >>> # Basic generation (with V0.4 calibration)
             >>> audio = model.generate("Hello!", language_id="en", emotion="happy")
 
-            >>> # With intensity control
+            >>> # With intensity control (calibration applied)
             >>> audio = model.generate("I'm so excited!", language_id="en",
             ...                        emotion="excited", emotion_intensity=1.3)
 
             >>> # Emotion blending
             >>> audio = model.generate("This is bittersweet.", language_id="en",
             ...                        emotion_blend={"happy": 0.4, "sad": 0.6})
+
+            >>> # Disable calibration for raw intensity control
+            >>> audio = model.generate("Hello!", language_id="en", emotion="angry",
+            ...                        emotion_intensity=1.0, use_calibration=False)
         """
         # Validate language_id
         if language_id and language_id.lower() not in SUPPORTED_LANGUAGES:
@@ -492,16 +543,18 @@ class ChatterboxMultilingualTTS:
                 emotion=emotion if emotion_blend is None else None,
                 emotion_intensity=emotion_intensity,
                 emotion_blend=emotion_blend,
+                use_calibration=use_calibration,
             )
         else:
             assert self.conds is not None, "Please `prepare_conditionals` first or specify `audio_prompt_path`"
 
-        # Update emotion embedding if needed
+        # Update emotion embedding if needed (with V0.4 calibration)
         _cond: T3Cond = self.conds.t3
         new_emotion_embed = self._get_emotion_embedding(
             emotion if emotion_blend is None else None,
             emotion_intensity,
             emotion_blend,
+            use_calibration=use_calibration,
         )
 
         # Check if emotion changed

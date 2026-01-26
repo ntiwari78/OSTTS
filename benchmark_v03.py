@@ -58,14 +58,14 @@ CHECKPOINT_CONFIGS = {
         "emotions": ["neutral", "happy", "sad", "angry", "surprised"],
     },
     "ravdess_ser": {
-        "path": "checkpoints/emotion_lora_ravdess_ser/checkpoint_epoch_15.pt",
+        "path": "checkpoints/emotion_lora_ravdess_ser/checkpoint_epoch_2.pt",
         "dataset": "RAVDESS-SER",
         "samples": 1440,
         "language": "en",
         "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
     },
     "cremad_ser": {
-        "path": "checkpoints/emotion_lora_cremad_ser/checkpoint_epoch_9.pt",
+        "path": "checkpoints/emotion_lora_cremad_ser/checkpoint_epoch_2.pt",
         "dataset": "CREMA-D-SER",
         "samples": 7442,
         "language": "en",
@@ -209,7 +209,7 @@ def run_checkpoint_benchmark(
     Run benchmark for a single checkpoint.
 
     Args:
-        checkpoint_name: Name of checkpoint (ravdess, cremad, iesc)
+        checkpoint_name: Name of checkpoint (ravdess, cremad, iesc, ravdess_ser, cremad_ser, iesc_ser)
         output_dir: Directory to save results
         device: Device to use
         audio_prompt: Optional reference audio
@@ -617,23 +617,29 @@ def generate_comparison_report(
         report += f"{summary.get('failed', 0)} | {summary.get('success_rate', 0):.1%} |\n"
 
     # Prosody comparison
+    # Get all checkpoint names for comparison (base and SER variants)
+    base_checkpoints = ["ravdess", "cremad", "iesc"]
+    ser_checkpoints = ["ravdess_ser", "cremad_ser", "iesc_ser"]
+    all_checkpoint_names = base_checkpoints + ser_checkpoints
+    
+    all_emotions = set()
+    for results in all_results.values():
+        all_emotions.update(results.get("prosody_analysis", {}).keys())
+
+    # Generate header for tables with all checkpoints
+    header_row = "| Emotion |"
+    separator_row = "|---------|"
+    for checkpoint in all_checkpoint_names:
+        display_name = checkpoint.upper().replace("_", "-")
+        header_row += f" {display_name} |"
+        separator_row += "---------|"
+    
     report += """
 ## Prosody Analysis by Emotion
 
 ### Pitch (Mean Hz)
 
-| Emotion | RAVDESS | CREMA-D | IESC |
-|---------|---------|---------|------|
-"""
-
-    all_emotions = set()
-    for results in all_results.values():
-        all_emotions.update(results.get("prosody_analysis", {}).keys())
-
-    # Get all checkpoint names for comparison (base and SER variants)
-    base_checkpoints = ["ravdess", "cremad", "iesc"]
-    ser_checkpoints = ["ravdess_ser", "cremad_ser", "iesc_ser"]
-    all_checkpoint_names = base_checkpoints + ser_checkpoints
+""" + header_row + "\n" + separator_row + "\n"
     
     for emotion in sorted(all_emotions):
         report += f"| {emotion} |"
@@ -653,13 +659,11 @@ def generate_comparison_report(
     report += """
 ### Energy (Mean RMS)
 
-| Emotion | RAVDESS | CREMA-D | IESC |
-|---------|---------|---------|------|
-"""
+""" + header_row + "\n" + separator_row + "\n"
 
     for emotion in sorted(all_emotions):
         report += f"| {emotion} |"
-        for checkpoint in ["ravdess", "cremad", "iesc"]:
+        for checkpoint in all_checkpoint_names:
             if checkpoint in all_results:
                 prosody = all_results[checkpoint].get("prosody_analysis", {}).get(emotion, {})
                 energy = prosody.get("energy_mean", "-")
