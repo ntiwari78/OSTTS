@@ -69,6 +69,11 @@ CHECKPOINT_CONFIGS = {
         "dataset": "CREMA-D-SER",
         "language": "en",
     },
+    "v04_full": {
+        "audio_dir": "benchmark_output/v04_full/audio",
+        "dataset": "Combined-V04",
+        "language": "en",
+    },
 
 }
 
@@ -733,7 +738,7 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "all"],
+        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "v04_full", "all"],
         default="all",
         help="Checkpoint to evaluate (default: all)",
     )

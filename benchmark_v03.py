@@ -71,6 +71,13 @@ CHECKPOINT_CONFIGS = {
         "language": "en",
         "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
     },
+    "v04_full": {
+        "path": "checkpoints/emotion_lora_v04_full/checkpoint_epoch_3.pt",
+        "dataset": "Combined-V04",
+        "samples": 8882,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised", "excited"],
+    },
 
 }
 
@@ -727,7 +734,7 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "all"],
+        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "v04_full", "all"],
         default="all",
         help="Checkpoint to benchmark (default: all)",
     )
