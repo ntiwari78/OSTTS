@@ -26,6 +26,9 @@ class T3Config:
         self.emotion_num_query_tokens = 4  # Number of cross-attention query tokens
         self.emotion_cross_attn_heads = 8  # Number of attention heads for emotion cross-attention
 
+        # V0.4 emotion architecture features (disabled by default for v03 compat)
+        self.use_v04_emotion_features = False
+
     @property
     def n_channels(self):
         return LLAMA_CONFIGS[self.llama_config_name]["hidden_size"]

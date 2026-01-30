@@ -37,6 +37,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+from torch.optim.lr_scheduler import CosineAnnealingLR
 import librosa
 import numpy as np
 from tqdm import tqdm
@@ -1059,12 +1060,23 @@ Examples:
                        help="Number of epochs")
     parser.add_argument("--lr", type=float, default=1e-4,
                        help="Learning rate")
+    parser.add_argument("--weight_decay", type=float, default=0.01,
+                       help="Weight decay for AdamW optimizer (default: 0.01)")
+    parser.add_argument("--scheduler", type=str, default="cosine",
+                       choices=["cosine", "step", "none"],
+                       help="Learning rate scheduler (default: cosine)")
+    parser.add_argument("--warmup_steps", type=int, default=500,
+                       help="Number of warmup steps for LR scheduler (default: 500)")
+    parser.add_argument("--min_lr", type=float, default=1e-6,
+                       help="Minimum learning rate for cosine scheduler (default: 1e-6)")
 
     # Sampling strategy
     parser.add_argument("--balanced_sampling", action="store_true",
                        help="Use balanced emotion sampling (recommended for imbalanced datasets)")
     parser.add_argument("--balanced_datasets", action="store_true",
                        help="Balance across datasets in combined mode")
+    parser.add_argument("--no_balanced_sampling", action="store_true",
+                       help="Disable automatic balanced sampling for combined datasets")
 
     # Language (auto-detected for specific datasets)
     parser.add_argument("--language", type=str, default=None,
@@ -1126,13 +1138,23 @@ Examples:
     parser.add_argument("--hard_negative_ratio", type=float, default=0.3,
                        help="Ratio of hard negatives in contrastive batches (default: 0.3)")
     parser.add_argument("--v04_all", action="store_true",
-                       help="Enable all V0.4 training improvements")
+                       help="Enable V0.4 training improvements (dynamic weights + hard negatives). "
+                            "Curriculum learning requires explicit --use_curriculum flag.")
+    parser.add_argument("--use_v04_architecture", action="store_true",
+                       help="Use V0.4 emotion architecture (gated projection, FiLM fusion, "
+                            "attention bias, 8 query tokens)")
 
     # Misc
     parser.add_argument("--download_data", action="store_true",
                        help="Download/setup data directory")
 
     args = parser.parse_args()
+
+    # Auto-enable balanced sampling for combined datasets (unless explicitly disabled)
+    if args.dataset == "combined" and not args.no_balanced_sampling:
+        if not args.balanced_sampling and not args.balanced_datasets:
+            print("Auto-enabling balanced dataset sampling for combined training")
+            args.balanced_datasets = True
 
     # Auto-generate output directory based on dataset
     if args.output_dir is None:
@@ -1177,6 +1199,10 @@ Examples:
             "batch_size": args.batch_size,
             "epochs": args.epochs,
             "lr": args.lr,
+            "weight_decay": args.weight_decay,
+            "scheduler": args.scheduler,
+            "warmup_steps": args.warmup_steps,
+            "min_lr": args.min_lr,
             "language": args.language,
             "early_stop_loss": args.early_stop_loss,
             "early_stop_patience": args.early_stop_patience,
@@ -1195,7 +1221,7 @@ Examples:
             "min_agreement": args.min_agreement,
             # V0.4
             "use_dynamic_weights": args.use_dynamic_weights or args.v04_all,
-            "use_curriculum": args.use_curriculum or args.v04_all,
+            "use_curriculum": args.use_curriculum,  # Requires explicit flag, not part of v04_all
             "curriculum_warmup_epochs": args.curriculum_warmup_epochs,
             "use_hard_negatives": args.use_hard_negatives or args.v04_all,
             "hard_negative_ratio": args.hard_negative_ratio,
@@ -1205,6 +1231,26 @@ Examples:
     # Load model
     print("Loading model...")
     model = ChatterboxMultilingualTTS.from_pretrained(device=device)
+
+    # V0.5: Configure emotion architecture before LoRA setup
+    if args.use_v04_architecture:
+        print("Enabling V0.4 emotion architecture (gated projection, FiLM, attention bias, 8 query tokens)")
+        model.t3.hp.use_v04_emotion_features = True
+        model.t3.hp.emotion_num_query_tokens = 8
+        # Reinitialize emotion cross attention with v04 features
+        from chatterbox.models.t3.modules.emotion_cross_attention import EmotionCrossAttention
+        model.t3.cond_enc.emotion_cross_attn = EmotionCrossAttention(
+            hidden_size=model.t3.hp.n_channels,
+            emotion_dim=model.t3.hp.emotion_embed_dim,
+            num_heads=model.t3.hp.emotion_cross_attn_heads,
+            num_query_tokens=8,
+            use_gated_projection=True,
+            use_film_fusion=True,
+            use_attention_bias=True,
+        )
+        print(f"  Emotion cross-attention: 8 query tokens, gated projection, FiLM fusion, attention bias")
+    else:
+        print("Using V0.3 emotion architecture (simple projection, 4 query tokens)")
 
     # Apply LoRA/Adapter
     model = setup_model_with_lora(
@@ -1459,7 +1505,12 @@ Examples:
         return
     
     print(f"\nTotal trainable parameters: {sum(p.numel() for p in trainable_params):,}")
-    optimizer = torch.optim.AdamW(trainable_params, lr=args.lr, weight_decay=1e-5)
+    optimizer = torch.optim.AdamW(trainable_params, lr=args.lr, weight_decay=args.weight_decay)
+
+    # Setup learning rate scheduler
+    # Note: total_steps computed after dataloader is available (see below)
+    # Scheduler is initialized after dataloader setup
+    global_step = 0
 
     # Setup CombinedEmotionLoss if SER loss is enabled
     combined_loss_fn = None
@@ -1533,7 +1584,7 @@ Examples:
             print(f"\n{'='*60}")
             print("Setting up V0.4 Training Improvements...")
             print(f"  Dynamic loss weights: {args.use_dynamic_weights or args.v04_all}")
-            print(f"  Curriculum learning: {args.use_curriculum or args.v04_all}")
+            print(f"  Curriculum learning: {args.use_curriculum}")
             print(f"  Hard negative mining: {args.use_hard_negatives or args.v04_all}")
             print(f"{'='*60}")
 
@@ -1544,13 +1595,13 @@ Examples:
                 emotion_names=dataset_emotions,
                 total_epochs=args.epochs,
                 use_dynamic_weights=args.use_dynamic_weights or args.v04_all,
-                use_curriculum=args.use_curriculum or args.v04_all,
+                use_curriculum=args.use_curriculum,
                 hard_negative_ratio=args.hard_negative_ratio if (args.use_hard_negatives or args.v04_all) else 0.0,
             )
             print("V0.4 Training Manager initialized successfully")
 
             # Print curriculum schedule
-            if args.use_curriculum or args.v04_all:
+            if args.use_curriculum:
                 print("\nCurriculum schedule:")
                 for ep in range(min(args.epochs, 5)):
                     allowed = v04_manager.curriculum.get_emotions_for_epoch(ep)
@@ -1559,6 +1610,25 @@ Examples:
                     print(f"  ... (showing first 5 of {args.epochs} epochs)")
         else:
             print("Warning: V0.4 training module not available, skipping V0.4 improvements")
+
+    # Setup learning rate scheduler (needs dataloader to be ready)
+    total_steps = args.epochs * len(dataloader)
+    scheduler = None
+    if args.scheduler == "cosine":
+        scheduler = CosineAnnealingLR(
+            optimizer,
+            T_max=max(total_steps - args.warmup_steps, 1),
+            eta_min=args.min_lr,
+        )
+        print(f"Using cosine LR scheduler: warmup={args.warmup_steps} steps, min_lr={args.min_lr}")
+    elif args.scheduler == "step":
+        from torch.optim.lr_scheduler import StepLR
+        step_size = max(total_steps // 3, 1)
+        scheduler = StepLR(optimizer, step_size=step_size, gamma=0.5)
+        print(f"Using step LR scheduler: step_size={step_size}, gamma=0.5")
+    else:
+        print("No LR scheduler (constant learning rate)")
+    print(f"Total training steps: {total_steps} ({args.epochs} epochs x {len(dataloader)} batches)")
 
     # Training loop
     print(f"\n{'='*60}")
@@ -1632,6 +1702,17 @@ Examples:
                     contrastive_weight=args.contrastive_weight,
                     v04_manager=v04_manager,
                 )
+                # LR scheduler step (step every batch regardless of loss)
+                global_step += 1
+                if scheduler is not None:
+                    if global_step <= args.warmup_steps:
+                        # Linear warmup: scale LR from 0 to base_lr
+                        warmup_factor = global_step / max(args.warmup_steps, 1)
+                        for param_group in optimizer.param_groups:
+                            param_group['lr'] = args.lr * warmup_factor
+                    else:
+                        scheduler.step()
+
                 if loss > 0.0:  # Only count valid losses
                     total_loss += loss
                     valid_batches += 1
@@ -1649,8 +1730,10 @@ Examples:
                     else:
                         early_stop_counter = 0  # Reset counter
 
+                current_lr = optimizer.param_groups[0]['lr']
                 progress_bar.set_postfix({
                     "loss": f"{loss:.4f}" if loss > 0 else "skip",
+                    "lr": f"{current_lr:.2e}",
                     "valid": valid_batches,
                     "es": f"{early_stop_counter}/{args.early_stop_patience}"
                 })

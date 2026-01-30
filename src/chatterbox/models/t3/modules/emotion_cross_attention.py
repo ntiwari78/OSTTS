@@ -76,8 +76,8 @@ class GatedEmotionProjection(nn.Module):
 
     def _init_weights(self):
         """Initialize weights for stable training."""
-        # Gate initialized to ~0.5 output (sigmoid(0) = 0.5)
-        nn.init.zeros_(self.gate_proj[0].bias)
+        # Gate initialized to ~0.73 output (sigmoid(1) ≈ 0.73) for stronger initial emotion signal
+        nn.init.constant_(self.gate_proj[0].bias, 1.0)
         nn.init.xavier_uniform_(self.gate_proj[0].weight, gain=0.5)
 
         # Value branch with small initialization
@@ -140,10 +140,10 @@ class EmotionQueryFusion(nn.Module):
         self._init_weights()
 
     def _init_weights(self):
-        """Initialize to near-identity (scale≈0, shift≈0)."""
-        # Zero out the final layer for identity-like initialization
+        """Initialize near-identity with slight initial modulation."""
+        # Small weights so initial modulation is gentle
         nn.init.zeros_(self.scale_net[-1].weight)
-        nn.init.zeros_(self.scale_net[-1].bias)
+        nn.init.constant_(self.scale_net[-1].bias, 0.1)  # Slight positive scale for initial modulation
         nn.init.zeros_(self.shift_net[-1].weight)
         nn.init.zeros_(self.shift_net[-1].bias)
 
@@ -218,8 +218,8 @@ class EmotionAttentionBias(nn.Module):
         self._init_weights()
 
     def _init_weights(self):
-        """Initialize with small values for gradual learning."""
-        nn.init.normal_(self.emotion_bias.weight, mean=0.0, std=0.02)
+        """Initialize with moderate values for meaningful initial bias."""
+        nn.init.normal_(self.emotion_bias.weight, mean=0.0, std=0.05)
         nn.init.xavier_uniform_(self.context_proj.weight, gain=0.5)
         nn.init.zeros_(self.context_proj.bias)
 
@@ -310,12 +310,12 @@ class EmotionCrossAttention(nn.Module):
         hidden_size: int = 1024,
         emotion_dim: int = 64,
         num_heads: int = 8,
-        num_query_tokens: int = 8,  # V0.4: expanded from 4
+        num_query_tokens: int = 4,  # V0.3 default (V0.4 uses 8)
         dropout: float = 0.1,
         use_flash_attention: bool = True,
-        use_gated_projection: bool = True,   # V0.4
-        use_film_fusion: bool = True,        # V0.4
-        use_attention_bias: bool = True,     # V0.4
+        use_gated_projection: bool = False,  # V0.4 feature, off by default
+        use_film_fusion: bool = False,       # V0.4 feature, off by default
+        use_attention_bias: bool = False,    # V0.4 feature, off by default
         num_emotions: int = 16,
     ):
         super().__init__()

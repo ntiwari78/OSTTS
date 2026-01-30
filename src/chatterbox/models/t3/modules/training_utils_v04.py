@@ -199,6 +199,9 @@ class DynamicEmotionLossWeight(nn.Module):
         # Track statistics for weight updates
         if predictions is not None:
             self._accumulate_stats(indices, predictions, loss)
+        else:
+            # Track loss-only stats when predictions unavailable (e.g., TTS training)
+            self._accumulate_loss_stats(indices, loss)
 
         # Periodically update weights
         self.batch_count += 1
@@ -229,36 +232,60 @@ class DynamicEmotionLossWeight(nn.Module):
             if i < len(loss_np):
                 self.loss_sums[label] += loss_np[i]
 
+    def _accumulate_loss_stats(
+        self,
+        labels: torch.Tensor,
+        loss: torch.Tensor,
+    ):
+        """Accumulate loss statistics for weight updates (no predictions needed)."""
+        labels_np = labels.cpu().numpy()
+        loss_val = loss.item() if loss.dim() == 0 else loss.detach().mean().item()
+
+        for label in labels_np:
+            self.total_counts[label] += 1
+            self.loss_sums[label] += loss_val
+
     def _update_weights(self):
-        """Update weights based on accumulated statistics."""
+        """Update weights based on accumulated statistics.
+
+        Supports two modes:
+        1. Accuracy-based: when predictions are available (higher weight for lower accuracy)
+        2. Loss-based: when only loss is available (higher weight for above-average loss)
+        """
         new_weights = self.weights.clone()
+        has_accuracy_data = bool(self.correct_counts)
 
         for emotion_idx in range(self.num_emotions):
             total = self.total_counts.get(emotion_idx, 0)
             if total == 0:
                 continue
 
-            # Calculate accuracy
-            correct = self.correct_counts.get(emotion_idx, 0)
-            accuracy = correct / total
-
             # Calculate average loss
             avg_loss = self.loss_sums.get(emotion_idx, 1.0) / total
 
-            # Update running stats with momentum
-            self.running_accuracy[emotion_idx] = (
-                self.momentum * self.running_accuracy[emotion_idx]
-                + (1 - self.momentum) * accuracy
-            )
+            # Update running loss with momentum
             self.running_loss[emotion_idx] = (
                 self.momentum * self.running_loss[emotion_idx]
                 + (1 - self.momentum) * avg_loss
             )
 
-            # Calculate new weight: higher weight for lower accuracy
-            # Weight = base_weight * (1 + (1 - accuracy))
-            # Range: [1.0, 2.0] for accuracy [1.0, 0.0]
-            new_weight = 1.0 + (1.0 - self.running_accuracy[emotion_idx])
+            if has_accuracy_data:
+                # Accuracy-based path: higher weight for lower accuracy
+                correct = self.correct_counts.get(emotion_idx, 0)
+                accuracy = correct / total
+                self.running_accuracy[emotion_idx] = (
+                    self.momentum * self.running_accuracy[emotion_idx]
+                    + (1 - self.momentum) * accuracy
+                )
+                new_weight = 1.0 + (1.0 - self.running_accuracy[emotion_idx])
+            else:
+                # Loss-based path: higher weight for above-average loss
+                mean_loss = self.running_loss.mean().item()
+                if mean_loss > 0:
+                    loss_ratio = self.running_loss[emotion_idx].item() / mean_loss
+                    new_weight = max(0.5, min(2.0, loss_ratio))
+                else:
+                    new_weight = 1.0
 
             # Clamp to allowed range
             new_weight = max(self.min_weight, min(self.max_weight, new_weight))
