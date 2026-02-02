@@ -560,7 +560,7 @@ def download_hindi_emotion_data(output_dir: str = "data/hindi_emotions"):
 
 def setup_model_with_lora(
     model: ChatterboxMultilingualTTS,
-    lora_rank: int = 8,
+    lora_rank: int = 16,
     lora_alpha: float = 16.0,
     use_adapter: bool = False,
     adapter_size: int = 64,
@@ -1044,7 +1044,7 @@ Examples:
     # Device and model settings
     parser.add_argument("--device", type=str, default="auto",
                        help="Device (auto, cuda, mps, cpu)")
-    parser.add_argument("--lora_rank", type=int, default=8,
+    parser.add_argument("--lora_rank", type=int, default=16,
                        help="LoRA rank")
     parser.add_argument("--lora_alpha", type=float, default=16.0,
                        help="LoRA alpha")

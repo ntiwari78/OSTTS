@@ -74,7 +74,167 @@ CHECKPOINT_CONFIGS = {
         "dataset": "Combined-V04",
         "language": "en",
     },
-
+    "v05_ravdess": {
+        "audio_dir": "benchmark_output/v05_ravdess/audio",
+        "dataset": "RAVDESS-V05",
+        "language": "en",
+    },
+    # === Calibration diagnostic ===
+    "ravdess_ser_nocalib": {
+        "audio_dir": "benchmark_output/ravdess_ser_nocalib/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-NOCALIB",
+        "language": "en",
+    },
+    # === Experiment checkpoints (V06 improvement sweep) ===
+    "ravdess_ser_v2_run1": {
+        "audio_dir": "benchmark_output/ravdess_ser_v2_run1/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-V2-Run1",
+        "language": "en",
+    },
+    "ravdess_ser_v2_run2": {
+        "audio_dir": "benchmark_output/ravdess_ser_v2_run2/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-V2-Run2",
+        "language": "en",
+    },
+    "ravdess_ser_v2_run3": {
+        "audio_dir": "benchmark_output/ravdess_ser_v2_run3/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-V2-Run3",
+        "language": "en",
+    },
+    "ravdess_ser_tuned_v1_run3": {
+        "audio_dir": "benchmark_output/ravdess_ser_tuned_v1_run3/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-TunedV1-Run3",
+        "language": "en",
+    },
+    "ravdess_ser_tuned_v1_run2": {
+        "audio_dir": "benchmark_output/ravdess_ser_tuned_v1_run2/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-TunedV1-Run2",
+        "language": "en",
+    },
+    "ravdess_ser_tuned_v1": {
+        "audio_dir": "benchmark_output/ravdess_ser_tuned_v1/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-TunedV1",
+        "language": "en",
+    },
+    "ravdess_ser_run3": {
+        "audio_dir": "benchmark_output/ravdess_ser_run3/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-RUN3",
+        "language": "en",
+    },
+    "ravdess_ser_rerun": {
+        "audio_dir": "benchmark_output/ravdess_ser_rerun/ravdess_ser/audio",
+        "dataset": "RAVDESS-SER-RERUN",
+        "language": "en",
+    },
+    "exp_a_epoch1_run2": {
+        "audio_dir": "benchmark_output/exp_a_epoch1_run2/exp_a_epoch1/audio",
+        "dataset": "ExpA-Epoch1-Run2",
+        "language": "en",
+    },
+    "exp_a_epoch1_nocalib": {
+        "audio_dir": "benchmark_output/exp_a_epoch1_nocalib/exp_a_epoch1/audio",
+        "dataset": "ExpA-Epoch1-NOCALIB",
+        "language": "en",
+    },
+    "exp_a_epoch1": {
+        "audio_dir": "benchmark_output/exp_a_epoch1/exp_a_epoch1/audio",
+        "dataset": "ExpA-Epoch1",
+        "language": "en",
+    },
+    "exp_a_epoch2": {
+        "audio_dir": "benchmark_output/exp_a_epoch2/exp_a_epoch2/audio",
+        "dataset": "ExpA-Epoch2",
+        "language": "en",
+    },
+    "exp_a_epoch3": {
+        "audio_dir": "benchmark_output/exp_a_epoch3/exp_a_epoch3/audio",
+        "dataset": "ExpA-Epoch3",
+        "language": "en",
+    },
+    "exp_b_epoch2": {
+        "audio_dir": "benchmark_output/exp_b_epoch2/exp_b_epoch2/audio",
+        "dataset": "ExpB-Epoch2",
+        "language": "en",
+    },
+    "exp_b_epoch3": {
+        "audio_dir": "benchmark_output/exp_b_epoch3/exp_b_epoch3/audio",
+        "dataset": "ExpB-Epoch3",
+        "language": "en",
+    },
+    "exp_c1_epoch2": {
+        "audio_dir": "benchmark_output/exp_c1_epoch2/exp_c1_epoch2/audio",
+        "dataset": "ExpC1-Epoch2",
+        "language": "en",
+    },
+    "exp_c3_epoch2": {
+        "audio_dir": "benchmark_output/exp_c3_epoch2/exp_c3_epoch2/audio",
+        "dataset": "ExpC3-Epoch2",
+        "language": "en",
+    },
+    "exp_d2_epoch2": {
+        "audio_dir": "benchmark_output/exp_d2_epoch2/exp_d2_epoch2/audio",
+        "dataset": "ExpD2-Epoch2",
+        "language": "en",
+    },
+    "exp_d3_epoch2": {
+        "audio_dir": "benchmark_output/exp_d3_epoch2/exp_d3_epoch2/audio",
+        "dataset": "ExpD3-Epoch2",
+        "language": "en",
+    },
+    # === V06 Production Checkpoint ===
+    # Best available: V03-SER epoch 2 (avg ~65.5% emotion2vec, range 62-69%)
+    "v06_ravdess": {
+        "audio_dir": "benchmark_output/v06_ravdess/v06_ravdess/audio",
+        "dataset": "RAVDESS-V06",
+        "language": "en",
+    },
+    # === CREMA-D V05 (trained with V03-SER recipe, 15 epochs) ===
+    "cremad_v05": {
+        "audio_dir": "benchmark_output/cremad_v05/cremad_v05/audio",
+        "dataset": "CREMAD-V05",
+        "language": "en",
+    },
+    # === CREMA-D Experiments ===
+    "exp_ca_epoch2": {
+        "audio_dir": "benchmark_output/exp_ca_epoch2/exp_ca_epoch2/audio",
+        "dataset": "ExpCA-Epoch2",
+        "language": "en",
+    },
+    "exp_ca_epoch3": {
+        "audio_dir": "benchmark_output/exp_ca_epoch3/exp_ca_epoch3/audio",
+        "dataset": "ExpCA-Epoch3",
+        "language": "en",
+    },
+    "exp_cb_epoch2": {
+        "audio_dir": "benchmark_output/exp_cb_epoch2/exp_cb_epoch2/audio",
+        "dataset": "ExpCB-Epoch2",
+        "language": "en",
+    },
+    "exp_cc1_epoch2": {
+        "audio_dir": "benchmark_output/exp_cc1_epoch2/exp_cc1_epoch2/audio",
+        "dataset": "ExpCC1-Epoch2",
+        "language": "en",
+    },
+    "exp_cc3_epoch2": {
+        "audio_dir": "benchmark_output/exp_cc3_epoch2/exp_cc3_epoch2/audio",
+        "dataset": "ExpCC3-Epoch2",
+        "language": "en",
+    },
+    "exp_cd2_epoch2": {
+        "audio_dir": "benchmark_output/exp_cd2_epoch2/exp_cd2_epoch2/audio",
+        "dataset": "ExpCD2-Epoch2",
+        "language": "en",
+    },
+    "exp_cd3_epoch2": {
+        "audio_dir": "benchmark_output/exp_cd3_epoch2/exp_cd3_epoch2/audio",
+        "dataset": "ExpCD3-Epoch2",
+        "language": "en",
+    },
+    "exp_ce_epoch2": {
+        "audio_dir": "benchmark_output/exp_ce_epoch2/exp_ce_epoch2/audio",
+        "dataset": "ExpCE-Epoch2",
+        "language": "en",
+    },
 }
 
 # Emotion mappings from filename patterns to expected emotions
@@ -738,7 +898,7 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "v04_full", "all"],
+        choices=list(CHECKPOINT_CONFIGS.keys()) + ["all"],
         default="all",
         help="Checkpoint to evaluate (default: all)",
     )
