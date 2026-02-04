@@ -1,6 +1,6 @@
 # Emotion Recognition Benchmark Results (LLM-based)
 
-**Generated**: 2026-02-02 20:42:07
+**Generated**: 2026-02-03 18:09:03
 
 ## Overview
 
@@ -13,32 +13,28 @@ This report evaluates the generated TTS emotions using multiple emotion recognit
 
 ### Model Accuracy by Checkpoint
 
-| Checkpoint | Dataset | emotion2vec | wav2vec2 (ehcalabres) | wav2vec2 (Dpngtm) |
-|------------|---------|-------------|----------------------|-------------------|
-| CREMAD_V05 | CREMAD-V05 | 55.6% | 7.4% | 29.6% |
+| Checkpoint | Dataset | emotion2vec | wav2vec2 (ehcalabres) | wav2vec2 (Dpngtm) | SpeechBrain (IEMOCAP) |
+|------------|---------|-------------|----------------------|-------------------|-----------------------|
+| CREMAD_V05_CORE7 | CREMAD-V05-CORE7 | 85.0% | 10.0% | 20.0% | 20.0% |
 
 ## Detailed Results
 
-### CREMAD_V05 (CREMAD-V05)
+### CREMAD_V05_CORE7 (CREMAD-V05-CORE7)
 
 #### emotion2vec_base
 
-**Overall Accuracy**: 55.6% (15/27)
+**Overall Accuracy**: 85.0% (17/20)
 
 | Emotion | Correct | Total | Accuracy |
 |---------|---------|-------|----------|
-| affectionate | 1 | 1 | 100.0% |
-| angry | 2 | 5 | 40.0% |
-| awed | 0 | 1 | 0.0% |
-| bored | 1 | 1 | 100.0% |
-| contemptuous | 0 | 1 | 0.0% |
-| disgusted | 0 | 1 | 0.0% |
-| excited | 1 | 2 | 50.0% |
+| angry | 3 | 5 | 60.0% |
+| disgusted | 1 | 1 | 100.0% |
+| excited | 1 | 1 | 100.0% |
 | fearful | 1 | 1 | 100.0% |
-| happy | 3 | 7 | 42.9% |
+| happy | 5 | 5 | 100.0% |
 | neutral | 1 | 1 | 100.0% |
-| sad | 4 | 5 | 80.0% |
-| sarcastic | 1 | 1 | 100.0% |
+| sad | 5 | 5 | 100.0% |
+| surprised | 0 | 1 | 0.0% |
 
 **Sample Predictions**:
 
@@ -47,81 +43,103 @@ This report evaluates the generated TTS emotions using multiple emotion recognit
 | basic_happy_1.0.wav | happy | happy | 1.00 | ✓ |
 | intensity_sad_1.5.wav | sad | sad | 1.00 | ✓ |
 | intensity_sad_1.0.wav | sad | sad | 1.00 | ✓ |
-| new_contemptuous_1.0.wav | contemptuous | neutral | 1.00 | ✗ |
-| intensity_sad_0.5.wav | sad | neutral | 1.00 | ✗ |
+| basic_surprised_1.0.wav | surprised | neutral | 0.99 | ✗ |
+| intensity_sad_0.5.wav | sad | sad | 1.00 | ✓ |
 | basic_fearful_1.0.wav | fearful | fearful | 1.00 | ✓ |
-| transition_sad_happy.wav | happy | sad | 1.00 | ✗ |
-| basic_disgusted_1.0.wav | disgusted | neutral | 1.00 | ✗ |
+| basic_disgusted_1.0.wav | disgusted | disgusted | 0.97 | ✓ |
 | intensity_sad_0.0.wav | sad | sad | 1.00 | ✓ |
-| basic_angry_1.0.wav | angry | angry | 1.00 | ✓ |
+| basic_angry_1.0.wav | angry | neutral | 1.00 | ✗ |
+| intensity_angry_1.0.wav | angry | neutral | 0.96 | ✗ |
 
 #### wav2vec2_ehcalabres
 
-**Overall Accuracy**: 7.4% (2/27)
+**Overall Accuracy**: 10.0% (2/20)
 
 | Emotion | Correct | Total | Accuracy |
 |---------|---------|-------|----------|
-| affectionate | 0 | 1 | 0.0% |
 | angry | 0 | 5 | 0.0% |
-| awed | 0 | 1 | 0.0% |
-| bored | 1 | 1 | 100.0% |
-| contemptuous | 0 | 1 | 0.0% |
 | disgusted | 0 | 1 | 0.0% |
-| excited | 0 | 2 | 0.0% |
+| excited | 0 | 1 | 0.0% |
 | fearful | 0 | 1 | 0.0% |
-| happy | 0 | 7 | 0.0% |
+| happy | 0 | 5 | 0.0% |
 | neutral | 0 | 1 | 0.0% |
-| sad | 1 | 5 | 20.0% |
-| sarcastic | 0 | 1 | 0.0% |
+| sad | 2 | 5 | 40.0% |
+| surprised | 0 | 1 | 0.0% |
 
 **Sample Predictions**:
 
 | File | Expected | Predicted | Confidence | Correct |
 |------|----------|-----------|------------|--------|
-| basic_happy_1.0.wav | happy | fearful | 0.13 | ✗ |
-| intensity_sad_1.5.wav | sad | fearful | 0.13 | ✗ |
+| basic_happy_1.0.wav | happy | surprised | 0.13 | ✗ |
+| intensity_sad_1.5.wav | sad | angry | 0.13 | ✗ |
 | intensity_sad_1.0.wav | sad | sad | 0.13 | ✓ |
-| new_contemptuous_1.0.wav | contemptuous | sad | 0.13 | ✗ |
-| intensity_sad_0.5.wav | sad | fearful | 0.13 | ✗ |
-| basic_fearful_1.0.wav | fearful | angry | 0.13 | ✗ |
-| transition_sad_happy.wav | happy | angry | 0.14 | ✗ |
+| basic_surprised_1.0.wav | surprised | sad | 0.13 | ✗ |
+| intensity_sad_0.5.wav | sad | sad | 0.13 | ✓ |
+| basic_fearful_1.0.wav | fearful | neutral | 0.13 | ✗ |
 | basic_disgusted_1.0.wav | disgusted | neutral | 0.13 | ✗ |
 | intensity_sad_0.0.wav | sad | angry | 0.13 | ✗ |
 | basic_angry_1.0.wav | angry | neutral | 0.13 | ✗ |
+| intensity_angry_1.0.wav | angry | neutral | 0.13 | ✗ |
 
 #### dpngtm
 
-**Overall Accuracy**: 29.6% (8/27)
+**Overall Accuracy**: 20.0% (4/20)
 
 | Emotion | Correct | Total | Accuracy |
 |---------|---------|-------|----------|
-| affectionate | 1 | 1 | 100.0% |
-| angry | 1 | 5 | 20.0% |
-| awed | 1 | 1 | 100.0% |
-| bored | 0 | 1 | 0.0% |
-| contemptuous | 1 | 1 | 100.0% |
+| angry | 0 | 5 | 0.0% |
 | disgusted | 0 | 1 | 0.0% |
-| excited | 0 | 2 | 0.0% |
+| excited | 1 | 1 | 100.0% |
 | fearful | 0 | 1 | 0.0% |
-| happy | 4 | 7 | 57.1% |
+| happy | 3 | 5 | 60.0% |
 | neutral | 0 | 1 | 0.0% |
 | sad | 0 | 5 | 0.0% |
-| sarcastic | 0 | 1 | 0.0% |
+| surprised | 0 | 1 | 0.0% |
 
 **Sample Predictions**:
 
 | File | Expected | Predicted | Confidence | Correct |
 |------|----------|-----------|------------|--------|
-| basic_happy_1.0.wav | happy | surprised | 0.99 | ✗ |
-| intensity_sad_1.5.wav | sad | happy | 0.83 | ✗ |
-| intensity_sad_1.0.wav | sad | happy | 0.81 | ✗ |
-| new_contemptuous_1.0.wav | contemptuous | angry | 0.98 | ✓ |
-| intensity_sad_0.5.wav | sad | calm | 0.80 | ✗ |
-| basic_fearful_1.0.wav | fearful | angry | 0.76 | ✗ |
-| transition_sad_happy.wav | happy | calm | 0.98 | ✗ |
-| basic_disgusted_1.0.wav | disgusted | happy | 0.98 | ✗ |
-| intensity_sad_0.0.wav | sad | happy | 0.95 | ✗ |
-| basic_angry_1.0.wav | angry | happy | 0.85 | ✗ |
+| basic_happy_1.0.wav | happy | disgusted | 0.65 | ✗ |
+| intensity_sad_1.5.wav | sad | happy | 0.85 | ✗ |
+| intensity_sad_1.0.wav | sad | happy | 0.96 | ✗ |
+| basic_surprised_1.0.wav | surprised | disgusted | 0.41 | ✗ |
+| intensity_sad_0.5.wav | sad | happy | 0.56 | ✗ |
+| basic_fearful_1.0.wav | fearful | angry | 0.68 | ✗ |
+| basic_disgusted_1.0.wav | disgusted | angry | 0.74 | ✗ |
+| intensity_sad_0.0.wav | sad | happy | 0.96 | ✗ |
+| basic_angry_1.0.wav | angry | happy | 0.95 | ✗ |
+| intensity_angry_1.0.wav | angry | disgusted | 0.85 | ✗ |
+
+#### speechbrain_iemocap
+
+**Overall Accuracy**: 20.0% (4/20)
+
+| Emotion | Correct | Total | Accuracy |
+|---------|---------|-------|----------|
+| angry | 2 | 5 | 40.0% |
+| disgusted | 0 | 1 | 0.0% |
+| excited | 0 | 1 | 0.0% |
+| fearful | 0 | 1 | 0.0% |
+| happy | 1 | 5 | 20.0% |
+| neutral | 1 | 1 | 100.0% |
+| sad | 0 | 5 | 0.0% |
+| surprised | 0 | 1 | 0.0% |
+
+**Sample Predictions**:
+
+| File | Expected | Predicted | Confidence | Correct |
+|------|----------|-----------|------------|--------|
+| basic_happy_1.0.wav | happy | happy | 1.00 | ✓ |
+| intensity_sad_1.5.wav | sad | angry | 1.00 | ✗ |
+| intensity_sad_1.0.wav | sad | happy | 1.00 | ✗ |
+| basic_surprised_1.0.wav | surprised | neutral | 0.67 | ✗ |
+| intensity_sad_0.5.wav | sad | happy | 1.00 | ✗ |
+| basic_fearful_1.0.wav | fearful | neutral | 1.00 | ✗ |
+| basic_disgusted_1.0.wav | disgusted | angry | 1.00 | ✗ |
+| intensity_sad_0.0.wav | sad | angry | 1.00 | ✗ |
+| basic_angry_1.0.wav | angry | neutral | 1.00 | ✗ |
+| intensity_angry_1.0.wav | angry | happy | 1.00 | ✗ |
 
 ## Notes
 
@@ -130,6 +148,7 @@ This report evaluates the generated TTS emotions using multiple emotion recognit
 1. **emotion2vec+**: Recognizes 9 emotions (Angry, Disgusted, Fearful, Happy, Neutral, Other, Sad, Surprised, Unknown)
 2. **wav2vec2 (ehcalabres)**: Recognizes 7 emotions (angry, calm, disgust, fear, happy, neutral, sad)
 3. **wav2vec2 (Dpngtm)**: Recognizes 8 emotions (angry, calm, disgust, fearful, happy, neutral, sad, surprised)
+4. **SpeechBrain IEMOCAP**: Recognizes 4 emotions (angry, happy, sad, neutral)
 
 ### New Emotions (v0.3)
 
