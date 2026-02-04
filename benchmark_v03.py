@@ -166,6 +166,14 @@ CHECKPOINT_CONFIGS = {
         "language": "en",
         "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
     },
+    # === CREMA-D V05 — 7 core emotions only ===
+    "cremad_v05_core7": {
+        "path": "checkpoints/emotion_lora_cremad_v05/checkpoint_epoch_15.pt",
+        "dataset": "CREMAD-V05-CORE7",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["angry", "disgusted", "fearful", "happy", "neutral", "sad", "surprised"],
+    },
     # === CREMA-D Experiments ===
     "exp_ca_epoch2": {
         "path": "checkpoints/exp_ca_v03_replica/checkpoint_epoch_2.pt",
@@ -222,6 +230,14 @@ CHECKPOINT_CONFIGS = {
         "samples": 7442,
         "language": "en",
         "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    # === Combined V07 (RAVDESS + CREMA-D + IESC, LoRA rank=16) ===
+    "combined_v07": {
+        "path": "checkpoints/emotion_lora_combined_v07/checkpoint_epoch_5.pt",
+        "dataset": "Combined-V07",
+        "samples": 9482,
+        "language": "en",
+        "emotions": ["angry", "disgusted", "fearful", "happy", "neutral", "sad", "surprised"],
     },
 }
 
@@ -887,12 +903,13 @@ def main():
                  "exp_b_epoch2", "exp_b_epoch3",
                  "exp_c1_epoch2", "exp_c3_epoch2",
                  "exp_d2_epoch2", "exp_d3_epoch2",
-                 "v06_ravdess", "cremad_v05",
+                 "v06_ravdess", "cremad_v05", "cremad_v05_core7",
                  "exp_ca_epoch2", "exp_ca_epoch3",
                  "exp_cb_epoch2",
                  "exp_cc1_epoch2", "exp_cc3_epoch2",
                  "exp_cd2_epoch2", "exp_cd3_epoch2",
                  "exp_ce_epoch2",
+                 "combined_v07",
                  "all"],
         default="all",
         help="Checkpoint to benchmark (default: all)",

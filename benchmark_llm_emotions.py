@@ -7,14 +7,10 @@ Uses audio files from benchmark_output folder and compares predictions
 with expected emotions.
 
 Models used (based on EMOTION_RECOGNITION_MODELS.md):
-1. emotion2vec+ (base) - Primary, best accuracy
-2. Dpngtm/wav2vec2-emotion-recognition - Secondary, 8 emotions
-3. ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition - Tertiary
+1. emotion2vec+ (base) - Primary, best accuracy, multilingual (9 emotions)
 
 Usage:
-    python benchmark_llm_emotions.py --all
-    python benchmark_llm_emotions.py --checkpoint ravdess
-    python benchmark_llm_emotions.py --models emotion2vec
+    python benchmark_llm_emotions.py --checkpoint combined_v07
 """
 
 import argparse
@@ -31,208 +27,16 @@ warnings.filterwarnings("ignore")
 # Try importing required libraries
 try:
     import torch
-    import torchaudio
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-    print("Warning: torch/torchaudio not available")
+    print("Warning: torch not available")
 
 # Checkpoint configurations
 CHECKPOINT_CONFIGS = {
-    "ravdess": {
-        "audio_dir": "benchmark_output/ravdess/audio",
-        "dataset": "RAVDESS",
-        "language": "en",
-    },
-    "cremad": {
-        "audio_dir": "benchmark_output/cremad/audio",
-        "dataset": "CREMA-D",
-        "language": "en",
-    },
-    "iesc": {
-        "audio_dir": "benchmark_output/iesc/audio",
-        "dataset": "IESC",
-        "language": "hi",
-    },
-    "iesc_ser": {
-        "audio_dir": "benchmark_output/iesc_ser/audio",
-        "dataset": "IESC-SER",
-        "language": "hi",
-    },
-    "ravdess_ser": {
-        "audio_dir": "benchmark_output/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER",
-        "language": "en",
-    },
-    "cremad_ser": {
-        "audio_dir": "benchmark_output/cremad_ser/audio",
-        "dataset": "CREMA-D-SER",
-        "language": "en",
-    },
-    "v04_full": {
-        "audio_dir": "benchmark_output/v04_full/audio",
-        "dataset": "Combined-V04",
-        "language": "en",
-    },
-    "v05_ravdess": {
-        "audio_dir": "benchmark_output/v05_ravdess/audio",
-        "dataset": "RAVDESS-V05",
-        "language": "en",
-    },
-    # === Calibration diagnostic ===
-    "ravdess_ser_nocalib": {
-        "audio_dir": "benchmark_output/ravdess_ser_nocalib/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-NOCALIB",
-        "language": "en",
-    },
-    # === Experiment checkpoints (V06 improvement sweep) ===
-    "ravdess_ser_v2_run1": {
-        "audio_dir": "benchmark_output/ravdess_ser_v2_run1/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-V2-Run1",
-        "language": "en",
-    },
-    "ravdess_ser_v2_run2": {
-        "audio_dir": "benchmark_output/ravdess_ser_v2_run2/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-V2-Run2",
-        "language": "en",
-    },
-    "ravdess_ser_v2_run3": {
-        "audio_dir": "benchmark_output/ravdess_ser_v2_run3/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-V2-Run3",
-        "language": "en",
-    },
-    "ravdess_ser_tuned_v1_run3": {
-        "audio_dir": "benchmark_output/ravdess_ser_tuned_v1_run3/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-TunedV1-Run3",
-        "language": "en",
-    },
-    "ravdess_ser_tuned_v1_run2": {
-        "audio_dir": "benchmark_output/ravdess_ser_tuned_v1_run2/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-TunedV1-Run2",
-        "language": "en",
-    },
-    "ravdess_ser_tuned_v1": {
-        "audio_dir": "benchmark_output/ravdess_ser_tuned_v1/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-TunedV1",
-        "language": "en",
-    },
-    "ravdess_ser_run3": {
-        "audio_dir": "benchmark_output/ravdess_ser_run3/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-RUN3",
-        "language": "en",
-    },
-    "ravdess_ser_rerun": {
-        "audio_dir": "benchmark_output/ravdess_ser_rerun/ravdess_ser/audio",
-        "dataset": "RAVDESS-SER-RERUN",
-        "language": "en",
-    },
-    "exp_a_epoch1_run2": {
-        "audio_dir": "benchmark_output/exp_a_epoch1_run2/exp_a_epoch1/audio",
-        "dataset": "ExpA-Epoch1-Run2",
-        "language": "en",
-    },
-    "exp_a_epoch1_nocalib": {
-        "audio_dir": "benchmark_output/exp_a_epoch1_nocalib/exp_a_epoch1/audio",
-        "dataset": "ExpA-Epoch1-NOCALIB",
-        "language": "en",
-    },
-    "exp_a_epoch1": {
-        "audio_dir": "benchmark_output/exp_a_epoch1/exp_a_epoch1/audio",
-        "dataset": "ExpA-Epoch1",
-        "language": "en",
-    },
-    "exp_a_epoch2": {
-        "audio_dir": "benchmark_output/exp_a_epoch2/exp_a_epoch2/audio",
-        "dataset": "ExpA-Epoch2",
-        "language": "en",
-    },
-    "exp_a_epoch3": {
-        "audio_dir": "benchmark_output/exp_a_epoch3/exp_a_epoch3/audio",
-        "dataset": "ExpA-Epoch3",
-        "language": "en",
-    },
-    "exp_b_epoch2": {
-        "audio_dir": "benchmark_output/exp_b_epoch2/exp_b_epoch2/audio",
-        "dataset": "ExpB-Epoch2",
-        "language": "en",
-    },
-    "exp_b_epoch3": {
-        "audio_dir": "benchmark_output/exp_b_epoch3/exp_b_epoch3/audio",
-        "dataset": "ExpB-Epoch3",
-        "language": "en",
-    },
-    "exp_c1_epoch2": {
-        "audio_dir": "benchmark_output/exp_c1_epoch2/exp_c1_epoch2/audio",
-        "dataset": "ExpC1-Epoch2",
-        "language": "en",
-    },
-    "exp_c3_epoch2": {
-        "audio_dir": "benchmark_output/exp_c3_epoch2/exp_c3_epoch2/audio",
-        "dataset": "ExpC3-Epoch2",
-        "language": "en",
-    },
-    "exp_d2_epoch2": {
-        "audio_dir": "benchmark_output/exp_d2_epoch2/exp_d2_epoch2/audio",
-        "dataset": "ExpD2-Epoch2",
-        "language": "en",
-    },
-    "exp_d3_epoch2": {
-        "audio_dir": "benchmark_output/exp_d3_epoch2/exp_d3_epoch2/audio",
-        "dataset": "ExpD3-Epoch2",
-        "language": "en",
-    },
-    # === V06 Production Checkpoint ===
-    # Best available: V03-SER epoch 2 (avg ~65.5% emotion2vec, range 62-69%)
-    "v06_ravdess": {
-        "audio_dir": "benchmark_output/v06_ravdess/v06_ravdess/audio",
-        "dataset": "RAVDESS-V06",
-        "language": "en",
-    },
-    # === CREMA-D V05 (trained with V03-SER recipe, 15 epochs) ===
-    "cremad_v05": {
-        "audio_dir": "benchmark_output/cremad_v05/cremad_v05/audio",
-        "dataset": "CREMAD-V05",
-        "language": "en",
-    },
-    # === CREMA-D Experiments ===
-    "exp_ca_epoch2": {
-        "audio_dir": "benchmark_output/exp_ca_epoch2/exp_ca_epoch2/audio",
-        "dataset": "ExpCA-Epoch2",
-        "language": "en",
-    },
-    "exp_ca_epoch3": {
-        "audio_dir": "benchmark_output/exp_ca_epoch3/exp_ca_epoch3/audio",
-        "dataset": "ExpCA-Epoch3",
-        "language": "en",
-    },
-    "exp_cb_epoch2": {
-        "audio_dir": "benchmark_output/exp_cb_epoch2/exp_cb_epoch2/audio",
-        "dataset": "ExpCB-Epoch2",
-        "language": "en",
-    },
-    "exp_cc1_epoch2": {
-        "audio_dir": "benchmark_output/exp_cc1_epoch2/exp_cc1_epoch2/audio",
-        "dataset": "ExpCC1-Epoch2",
-        "language": "en",
-    },
-    "exp_cc3_epoch2": {
-        "audio_dir": "benchmark_output/exp_cc3_epoch2/exp_cc3_epoch2/audio",
-        "dataset": "ExpCC3-Epoch2",
-        "language": "en",
-    },
-    "exp_cd2_epoch2": {
-        "audio_dir": "benchmark_output/exp_cd2_epoch2/exp_cd2_epoch2/audio",
-        "dataset": "ExpCD2-Epoch2",
-        "language": "en",
-    },
-    "exp_cd3_epoch2": {
-        "audio_dir": "benchmark_output/exp_cd3_epoch2/exp_cd3_epoch2/audio",
-        "dataset": "ExpCD3-Epoch2",
-        "language": "en",
-    },
-    "exp_ce_epoch2": {
-        "audio_dir": "benchmark_output/exp_ce_epoch2/exp_ce_epoch2/audio",
-        "dataset": "ExpCE-Epoch2",
+    "combined_v07": {
+        "audio_dir": "benchmark_output/combined_v07/combined_v07/audio",
+        "dataset": "Combined-V07",
         "language": "en",
     },
 }
@@ -249,12 +53,6 @@ EMOTION_PATTERNS = {
     "basic_calm": "calm",
     "basic_disgusted": "disgusted",
     "basic_excited": "excited",
-    # New v0.3 emotions
-    "new_sarcastic": "sarcastic",
-    "new_bored": "bored",
-    "new_affectionate": "affectionate",
-    "new_contemptuous": "contemptuous",
-    "new_awed": "awed",
     # Intensity tests - map to base emotion
     "intensity_happy": "happy",
     "intensity_angry": "angry",
@@ -298,27 +96,6 @@ EMOTION2VEC_MAPPING = {
     "难过/sad": "sad",
     "吃惊/surprised": "surprised",
     "<unk>": "neutral",
-}
-
-WAV2VEC2_EHCALABRES_MAPPING = {
-    "angry": "angry",
-    "calm": "calm",
-    "disgust": "disgusted",
-    "fear": "fearful",
-    "happy": "happy",
-    "neutral": "neutral",
-    "sad": "sad",
-}
-
-DPNGTM_MAPPING = {
-    "angry": "angry",
-    "calm": "calm",
-    "disgust": "disgusted",
-    "fearful": "fearful",
-    "happy": "happy",
-    "neutral": "neutral",
-    "sad": "sad",
-    "surprised": "surprised",
 }
 
 
@@ -499,136 +276,6 @@ class Emotion2VecEvaluator(EmotionEvaluator):
         return predicted_clean.lower()
 
 
-class Wav2Vec2EhcalabresEvaluator(EmotionEvaluator):
-    """ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition evaluator."""
-
-    def __init__(self, device: str = "auto"):
-        super().__init__(device)
-        self.model_name = "wav2vec2_ehcalabres"
-        self.processor = None
-
-    def load_model(self):
-        """Load wav2vec2 ehcalabres model."""
-        try:
-            from transformers import AutoFeatureExtractor, AutoModelForAudioClassification
-
-            model_id = "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition"
-            self.processor = AutoFeatureExtractor.from_pretrained(model_id)
-            self.model = AutoModelForAudioClassification.from_pretrained(model_id)
-            self.model.to(self.device)
-            self.model.eval()
-            print(f"Loaded {model_id}")
-            return True
-        except Exception as e:
-            print(f"Failed to load wav2vec2 ehcalabres: {e}")
-            return False
-
-    def classify(self, audio_path: str) -> Dict:
-        """Classify emotion using wav2vec2."""
-        try:
-            # Load audio
-            waveform, sr = torchaudio.load(audio_path)
-
-            # Resample to 16kHz if needed
-            if sr != 16000:
-                resampler = torchaudio.transforms.Resample(sr, 16000)
-                waveform = resampler(waveform)
-
-            # Process
-            inputs = self.processor(
-                waveform.squeeze().numpy(),
-                sampling_rate=16000,
-                return_tensors="pt"
-            )
-            inputs = {k: v.to(self.device) for k, v in inputs.items()}
-
-            # Inference
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-                probs = torch.softmax(outputs.logits, dim=-1)
-                pred_id = torch.argmax(probs, dim=-1).item()
-                pred_label = self.model.config.id2label[pred_id]
-                confidence = probs[0, pred_id].item()
-
-            return {
-                "predicted_raw": pred_label,
-                "predicted": self.map_emotion(pred_label),
-                "confidence": float(confidence),
-                "status": "success"
-            }
-        except Exception as e:
-            return {"status": "error", "error": str(e)}
-
-    def map_emotion(self, predicted: str) -> str:
-        """Map wav2vec2 ehcalabres output to our system."""
-        return WAV2VEC2_EHCALABRES_MAPPING.get(predicted.lower(), predicted.lower())
-
-
-class DpngtmEvaluator(EmotionEvaluator):
-    """Dpngtm/wav2vec2-emotion-recognition evaluator."""
-
-    def __init__(self, device: str = "auto"):
-        super().__init__(device)
-        self.model_name = "dpngtm"
-        self.processor = None
-
-    def load_model(self):
-        """Load Dpngtm wav2vec2 model."""
-        try:
-            from transformers import Wav2Vec2Processor, Wav2Vec2ForSequenceClassification
-
-            model_id = "Dpngtm/wav2vec2-emotion-recognition"
-            self.processor = Wav2Vec2Processor.from_pretrained(model_id)
-            self.model = Wav2Vec2ForSequenceClassification.from_pretrained(model_id)
-            self.model.to(self.device)
-            self.model.eval()
-            print(f"Loaded {model_id}")
-            return True
-        except Exception as e:
-            print(f"Failed to load Dpngtm model: {e}")
-            return False
-
-    def classify(self, audio_path: str) -> Dict:
-        """Classify emotion using Dpngtm model."""
-        try:
-            # Load audio
-            waveform, sr = torchaudio.load(audio_path)
-
-            # Resample to 16kHz if needed
-            if sr != 16000:
-                resampler = torchaudio.transforms.Resample(sr, 16000)
-                waveform = resampler(waveform)
-
-            # Process
-            inputs = self.processor(
-                waveform.squeeze().numpy(),
-                sampling_rate=16000,
-                return_tensors="pt",
-                padding=True
-            )
-            inputs = {k: v.to(self.device) for k, v in inputs.items()}
-
-            # Inference
-            with torch.no_grad():
-                outputs = self.model(**inputs)
-                probs = torch.softmax(outputs.logits, dim=-1)
-                pred_id = torch.argmax(probs, dim=-1).item()
-                pred_label = self.model.config.id2label[pred_id]
-                confidence = probs[0, pred_id].item()
-
-            return {
-                "predicted_raw": pred_label,
-                "predicted": self.map_emotion(pred_label),
-                "confidence": float(confidence),
-                "status": "success"
-            }
-        except Exception as e:
-            return {"status": "error", "error": str(e)}
-
-    def map_emotion(self, predicted: str) -> str:
-        """Map Dpngtm output to our system."""
-        return DPNGTM_MAPPING.get(predicted.lower(), predicted.lower())
-
 
 def get_expected_emotion(filename: str) -> Optional[str]:
     """Extract expected emotion from filename."""
@@ -783,32 +430,28 @@ def generate_markdown_report(all_results: Dict, output_path: Path):
 
 ## Overview
 
-This report evaluates the generated TTS emotions using multiple emotion recognition models:
-1. **emotion2vec+ (base)** - Foundation model, best accuracy, multilingual
-2. **wav2vec2 (ehcalabres)** - 7 emotions, well-established
-3. **wav2vec2 (Dpngtm)** - 8 emotions, trained on multiple datasets
+This report evaluates the generated TTS emotions using emotion2vec+ (base) — the only SER model
+that reliably generalizes to synthetic TTS audio.
 
 ## Summary
 
 ### Model Accuracy by Checkpoint
 
-| Checkpoint | Dataset | emotion2vec | wav2vec2 (ehcalabres) | wav2vec2 (Dpngtm) |
-|------------|---------|-------------|----------------------|-------------------|
+| Checkpoint | Dataset | emotion2vec |
+|------------|---------|-------------|
 """
 
     for checkpoint, results in all_results.items():
         if "error" in results:
-            report += f"| {checkpoint.upper()} | - | ERROR | ERROR | ERROR |\n"
+            report += f"| {checkpoint.upper()} | - | ERROR |\n"
             continue
 
         dataset = results.get("dataset", "-")
         model_results = results.get("model_results", {})
 
         e2v_acc = model_results.get("emotion2vec_base", {}).get("accuracy", 0)
-        ehc_acc = model_results.get("wav2vec2_ehcalabres", {}).get("accuracy", 0)
-        dpn_acc = model_results.get("dpngtm", {}).get("accuracy", 0)
 
-        report += f"| {checkpoint.upper()} | {dataset} | {e2v_acc:.1%} | {ehc_acc:.1%} | {dpn_acc:.1%} |\n"
+        report += f"| {checkpoint.upper()} | {dataset} | {e2v_acc:.1%} |\n"
 
     # Detailed results per checkpoint
     report += "\n## Detailed Results\n"
@@ -855,21 +498,9 @@ This report evaluates the generated TTS emotions using multiple emotion recognit
     # Notes
     report += """## Notes
 
-### Model Limitations
+### Model Details
 
-1. **emotion2vec+**: Recognizes 9 emotions (Angry, Disgusted, Fearful, Happy, Neutral, Other, Sad, Surprised, Unknown)
-2. **wav2vec2 (ehcalabres)**: Recognizes 7 emotions (angry, calm, disgust, fear, happy, neutral, sad)
-3. **wav2vec2 (Dpngtm)**: Recognizes 8 emotions (angry, calm, disgust, fearful, happy, neutral, sad, surprised)
-
-### New Emotions (v0.3)
-
-The new emotions (sarcastic, bored, affectionate, contemptuous, awed) are not directly recognized by these models.
-They are mapped to closest emotions:
-- **sarcastic** -> angry, neutral, or other
-- **bored** -> neutral, sad, or other
-- **affectionate** -> happy, neutral, or other
-- **contemptuous** -> angry, disgusted, or other
-- **awed** -> surprised, happy, or other
+- **emotion2vec+**: Recognizes 9 emotions (Angry, Disgusted, Fearful, Happy, Neutral, Other, Sad, Surprised, Unknown)
 
 ### Evaluation Criteria
 
@@ -880,8 +511,6 @@ They are mapped to closest emotions:
 ## References
 
 1. [emotion2vec GitHub](https://github.com/ddlBoJack/emotion2vec)
-2. [wav2vec2 ehcalabres](https://huggingface.co/ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition)
-3. [wav2vec2 Dpngtm](https://huggingface.co/Dpngtm/wav2vec2-emotion-recognition)
 """
 
     # Save report
@@ -898,22 +527,22 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        choices=list(CHECKPOINT_CONFIGS.keys()) + ["all"],
-        default="all",
-        help="Checkpoint to evaluate (default: all)",
+        choices=list(CHECKPOINT_CONFIGS.keys()),
+        default="combined_v07",
+        help="Checkpoint to evaluate (default: combined_v07)",
     )
     parser.add_argument(
         "--models",
         type=str,
         nargs="+",
-        choices=["emotion2vec", "ehcalabres", "dpngtm", "all"],
+        choices=["emotion2vec", "all"],
         default=["all"],
         help="Models to use (default: all)",
     )
     parser.add_argument(
         "--output",
         type=str,
-        default="benchmark_output/comparison/BENCHMARK_LLM_RESULTS_V03.md",
+        default="benchmark_output/comparison/BENCHMARK_LLM_RESULTS_COMBINED_V07.md",
         help="Output file for results",
     )
     parser.add_argument(
@@ -964,29 +593,15 @@ def main():
         if e2v.load_model():
             evaluators["emotion2vec_base"] = e2v
 
-    if use_all or "ehcalabres" in args.models:
-        ehc = Wav2Vec2EhcalabresEvaluator(device=args.device)
-        if ehc.load_model():
-            evaluators["wav2vec2_ehcalabres"] = ehc
-
-    if use_all or "dpngtm" in args.models:
-        dpn = DpngtmEvaluator(device=args.device)
-        if dpn.load_model():
-            evaluators["dpngtm"] = dpn
-
     if not evaluators:
         print("ERROR: No models could be loaded. Please install required dependencies:")
-        print("  pip install -U funasr modelscope transformers torchaudio")
+        print("  pip install -U funasr modelscope")
         sys.exit(1)
 
     print(f"\nLoaded {len(evaluators)} models: {list(evaluators.keys())}")
 
     # Evaluate checkpoints
-    checkpoints = (
-        ["ravdess", "cremad", "iesc"]
-        if args.checkpoint == "all"
-        else [args.checkpoint]
-    )
+    checkpoints = [args.checkpoint]
 
     all_results = {}
     for checkpoint in checkpoints:
