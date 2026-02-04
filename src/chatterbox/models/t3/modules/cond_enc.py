@@ -67,11 +67,16 @@ class T3CondEnc(nn.Module):
             raise NotImplementedError(str(hp.encoder_type))
 
         # Emotion cross-attention conditioning
+        # V0.4 features are only enabled if config explicitly sets use_v04_emotion_features=True
+        use_v04 = getattr(hp, 'use_v04_emotion_features', False)
         self.emotion_cross_attn = EmotionCrossAttention(
             hidden_size=hp.n_channels,
             emotion_dim=hp.emotion_embed_dim,
             num_heads=hp.emotion_cross_attn_heads,
             num_query_tokens=hp.emotion_num_query_tokens,
+            use_gated_projection=use_v04,
+            use_film_fusion=use_v04,
+            use_attention_bias=use_v04,
         )
 
         # Perceiver resampler for speech prompts

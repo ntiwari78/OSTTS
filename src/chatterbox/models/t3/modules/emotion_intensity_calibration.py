@@ -22,7 +22,7 @@ from typing import Dict, Optional
 
 CALIBRATED_INTENSITIES: Dict[str, float] = {
     # High-energy emotions need intensity boost
-    'angry': 1.5,       # Critical fix: default intensity → neutral
+    'angry': 1.6,       # Critical fix: default intensity → neutral
     'disgusted': 1.4,   # Needs clearer markers for recognition
     'excited': 1.3,     # Needs energy boost
     'happy': 1.2,       # Slight pitch/energy boost
@@ -30,7 +30,7 @@ CALIBRATED_INTENSITIES: Dict[str, float] = {
     'shout': 1.3,       # Needs energy boost
 
     # Well-performing emotions (no change)
-    'surprised': 1.0,   # Works well at default
+    'surprised': 1.1,   # Slight boost for higher arousal
     'sad': 1.0,         # Works well at default
     'neutral': 1.0,     # Baseline reference
 
@@ -40,9 +40,9 @@ CALIBRATED_INTENSITIES: Dict[str, float] = {
     'bored': 0.9,       # Slight reduction
 
     # New emotions (v0.2.1) - conservative calibration
-    'sarcastic': 1.1,   # Slight boost for intonation
+    'sarcastic': 1.2,   # Slight boost for intonation
     'affectionate': 1.0, # Works at default
-    'contemptuous': 1.2, # Needs clearer markers
+    'contemptuous': 1.3, # Needs clearer markers
     'awed': 1.1,        # Slight boost
 }
 

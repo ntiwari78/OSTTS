@@ -1,16 +1,16 @@
 {
-  "ravdess_ser": {
-    "checkpoint": "ravdess_ser",
-    "dataset": "RAVDESS-SER",
+  "cremad_v05_core7": {
+    "checkpoint": "cremad_v05_core7",
+    "dataset": "CREMAD-V05-CORE7",
     "language": "en",
-    "timestamp": "2026-01-24T20:45:20.925629",
+    "timestamp": "2026-02-03T18:08:47.529944",
     "model_results": {
       "emotion2vec_base": {
-        "total": 29,
-        "correct": 20,
+        "total": 20,
+        "correct": 17,
         "by_emotion": {
           "happy": {
-            "total": 7,
+            "total": 5,
             "correct": 5
           },
           "sad": {
@@ -18,10 +18,6 @@
             "correct": 5
           },
           "surprised": {
-            "total": 1,
-            "correct": 0
-          },
-          "contemptuous": {
             "total": 1,
             "correct": 0
           },
@@ -35,33 +31,13 @@
           },
           "angry": {
             "total": 5,
-            "correct": 2
-          },
-          "awed": {
-            "total": 1,
-            "correct": 0
+            "correct": 3
           },
           "neutral": {
             "total": 1,
             "correct": 1
           },
           "excited": {
-            "total": 2,
-            "correct": 2
-          },
-          "bored": {
-            "total": 1,
-            "correct": 1
-          },
-          "affectionate": {
-            "total": 1,
-            "correct": 1
-          },
-          "calm": {
-            "total": 1,
-            "correct": 0
-          },
-          "sarcastic": {
             "total": 1,
             "correct": 1
           }
@@ -72,7 +48,7 @@
             "expected": "happy",
             "predicted": "happy",
             "predicted_raw": "\u5f00\u5fc3/happy",
-            "confidence": 0.9999901056289673,
+            "confidence": 0.9999970197677612,
             "correct": true
           },
           {
@@ -88,23 +64,15 @@
             "expected": "sad",
             "predicted": "sad",
             "predicted_raw": "\u96be\u8fc7/sad",
-            "confidence": 1.0,
+            "confidence": 0.9999998807907104,
             "correct": true
           },
           {
             "file": "basic_surprised_1.0.wav",
             "expected": "surprised",
             "predicted": "neutral",
-            "predicted_raw": "<unk>",
-            "confidence": 0.5652676820755005,
-            "correct": false
-          },
-          {
-            "file": "new_contemptuous_1.0.wav",
-            "expected": "contemptuous",
-            "predicted": "neutral",
             "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 1.0,
+            "confidence": 0.9934705495834351,
             "correct": false
           },
           {
@@ -112,7 +80,7 @@
             "expected": "sad",
             "predicted": "sad",
             "predicted_raw": "\u96be\u8fc7/sad",
-            "confidence": 0.997336208820343,
+            "confidence": 1.0,
             "correct": true
           },
           {
@@ -120,23 +88,15 @@
             "expected": "fearful",
             "predicted": "fearful",
             "predicted_raw": "\u6050\u60e7/fearful",
-            "confidence": 0.9999805688858032,
+            "confidence": 0.9981222748756409,
             "correct": true
-          },
-          {
-            "file": "transition_sad_happy.wav",
-            "expected": "happy",
-            "predicted": "sad",
-            "predicted_raw": "\u96be\u8fc7/sad",
-            "confidence": 0.8951592445373535,
-            "correct": false
           },
           {
             "file": "basic_disgusted_1.0.wav",
             "expected": "disgusted",
             "predicted": "disgusted",
             "predicted_raw": "\u538c\u6076/disgusted",
-            "confidence": 0.945418655872345,
+            "confidence": 0.9664388298988342,
             "correct": true
           },
           {
@@ -144,31 +104,23 @@
             "expected": "sad",
             "predicted": "sad",
             "predicted_raw": "\u96be\u8fc7/sad",
-            "confidence": 0.9999961853027344,
+            "confidence": 0.9999992847442627,
             "correct": true
           },
           {
             "file": "basic_angry_1.0.wav",
             "expected": "angry",
-            "predicted": "fearful",
-            "predicted_raw": "\u6050\u60e7/fearful",
-            "confidence": 0.9704777598381042,
+            "predicted": "neutral",
+            "predicted_raw": "\u4e2d\u7acb/neutral",
+            "confidence": 0.9977573752403259,
             "correct": false
           },
           {
             "file": "intensity_angry_1.0.wav",
             "expected": "angry",
-            "predicted": "angry",
-            "predicted_raw": "\u751f\u6c14/angry",
-            "confidence": 0.9442629218101501,
-            "correct": true
-          },
-          {
-            "file": "new_awed_1.0.wav",
-            "expected": "awed",
             "predicted": "neutral",
             "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 0.9999998807907104,
+            "confidence": 0.9615206718444824,
             "correct": false
           },
           {
@@ -192,31 +144,15 @@
             "expected": "happy",
             "predicted": "happy",
             "predicted_raw": "\u5f00\u5fc3/happy",
-            "confidence": 0.974249541759491,
-            "correct": true
-          },
-          {
-            "file": "transition_calm_excited.wav",
-            "expected": "excited",
-            "predicted": "happy",
-            "predicted_raw": "\u5f00\u5fc3/happy",
-            "confidence": 0.9961557984352112,
+            "confidence": 0.9999977350234985,
             "correct": true
           },
           {
             "file": "intensity_angry_1.5.wav",
             "expected": "angry",
-            "predicted": "neutral",
-            "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 0.9460190534591675,
-            "correct": false
-          },
-          {
-            "file": "new_bored_1.0.wav",
-            "expected": "bored",
-            "predicted": "neutral",
-            "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 0.9971116781234741,
+            "predicted": "angry",
+            "predicted_raw": "\u751f\u6c14/angry",
+            "confidence": 0.9625565409660339,
             "correct": true
           },
           {
@@ -224,7 +160,7 @@
             "expected": "happy",
             "predicted": "happy",
             "predicted_raw": "\u5f00\u5fc3/happy",
-            "confidence": 0.9999998807907104,
+            "confidence": 0.9991268515586853,
             "correct": true
           },
           {
@@ -232,7 +168,7 @@
             "expected": "excited",
             "predicted": "happy",
             "predicted_raw": "\u5f00\u5fc3/happy",
-            "confidence": 0.9992192983627319,
+            "confidence": 0.9999881982803345,
             "correct": true
           },
           {
@@ -240,75 +176,43 @@
             "expected": "sad",
             "predicted": "sad",
             "predicted_raw": "\u96be\u8fc7/sad",
-            "confidence": 0.7654390931129456,
-            "correct": true
-          },
-          {
-            "file": "new_affectionate_1.0.wav",
-            "expected": "affectionate",
-            "predicted": "neutral",
-            "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 0.7761658430099487,
+            "confidence": 0.9999861717224121,
             "correct": true
           },
           {
             "file": "intensity_angry_0.0.wav",
             "expected": "angry",
-            "predicted": "neutral",
-            "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 0.9999953508377075,
-            "correct": false
-          },
-          {
-            "file": "basic_calm_1.0.wav",
-            "expected": "calm",
-            "predicted": "neutral",
-            "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 1.0,
-            "correct": false
+            "predicted": "angry",
+            "predicted_raw": "\u751f\u6c14/angry",
+            "confidence": 0.779742956161499,
+            "correct": true
           },
           {
             "file": "intensity_angry_0.5.wav",
             "expected": "angry",
             "predicted": "angry",
             "predicted_raw": "\u751f\u6c14/angry",
-            "confidence": 0.9172167181968689,
+            "confidence": 0.921535849571228,
             "correct": true
-          },
-          {
-            "file": "transition_neutral_happy.wav",
-            "expected": "happy",
-            "predicted": "neutral",
-            "predicted_raw": "\u4e2d\u7acb/neutral",
-            "confidence": 0.9995718598365784,
-            "correct": false
           },
           {
             "file": "intensity_happy_1.0.wav",
             "expected": "happy",
             "predicted": "happy",
             "predicted_raw": "\u5f00\u5fc3/happy",
-            "confidence": 0.9998289346694946,
-            "correct": true
-          },
-          {
-            "file": "new_sarcastic_1.0.wav",
-            "expected": "sarcastic",
-            "predicted": "neutral",
-            "predicted_raw": "<unk>",
-            "confidence": 0.9939242005348206,
+            "confidence": 0.9999985694885254,
             "correct": true
           }
         ],
-        "accuracy": 0.6896551724137931
+        "accuracy": 0.85
       },
       "wav2vec2_ehcalabres": {
-        "total": 29,
-        "correct": 5,
+        "total": 20,
+        "correct": 2,
         "by_emotion": {
           "happy": {
-            "total": 7,
-            "correct": 1
+            "total": 5,
+            "correct": 0
           },
           "sad": {
             "total": 5,
@@ -318,13 +222,9 @@
             "total": 1,
             "correct": 0
           },
-          "contemptuous": {
-            "total": 1,
-            "correct": 0
-          },
           "fearful": {
             "total": 1,
-            "correct": 1
+            "correct": 0
           },
           "disgusted": {
             "total": 1,
@@ -334,31 +234,11 @@
             "total": 5,
             "correct": 0
           },
-          "awed": {
-            "total": 1,
-            "correct": 0
-          },
           "neutral": {
             "total": 1,
             "correct": 0
           },
           "excited": {
-            "total": 2,
-            "correct": 0
-          },
-          "bored": {
-            "total": 1,
-            "correct": 1
-          },
-          "affectionate": {
-            "total": 1,
-            "correct": 0
-          },
-          "calm": {
-            "total": 1,
-            "correct": 0
-          },
-          "sarcastic": {
             "total": 1,
             "correct": 0
           }
@@ -367,65 +247,49 @@
           {
             "file": "basic_happy_1.0.wav",
             "expected": "happy",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.12906619906425476,
+            "predicted": "surprised",
+            "predicted_raw": "surprised",
+            "confidence": 0.1326940953731537,
             "correct": false
           },
           {
             "file": "intensity_sad_1.5.wav",
             "expected": "sad",
-            "predicted": "sad",
-            "predicted_raw": "sad",
-            "confidence": 0.13326314091682434,
-            "correct": true
+            "predicted": "angry",
+            "predicted_raw": "angry",
+            "confidence": 0.13444693386554718,
+            "correct": false
           },
           {
             "file": "intensity_sad_1.0.wav",
             "expected": "sad",
             "predicted": "sad",
             "predicted_raw": "sad",
-            "confidence": 0.13010835647583008,
+            "confidence": 0.13163527846336365,
             "correct": true
           },
           {
             "file": "basic_surprised_1.0.wav",
             "expected": "surprised",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.13009585440158844,
-            "correct": false
-          },
-          {
-            "file": "new_contemptuous_1.0.wav",
-            "expected": "contemptuous",
             "predicted": "sad",
             "predicted_raw": "sad",
-            "confidence": 0.13327628374099731,
+            "confidence": 0.1299743503332138,
             "correct": false
           },
           {
             "file": "intensity_sad_0.5.wav",
             "expected": "sad",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.1368904709815979,
-            "correct": false
+            "predicted": "sad",
+            "predicted_raw": "sad",
+            "confidence": 0.13310542702674866,
+            "correct": true
           },
           {
             "file": "basic_fearful_1.0.wav",
             "expected": "fearful",
-            "predicted": "fearful",
-            "predicted_raw": "fearful",
-            "confidence": 0.1329866349697113,
-            "correct": true
-          },
-          {
-            "file": "transition_sad_happy.wav",
-            "expected": "happy",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.1319187879562378,
+            "predicted": "neutral",
+            "predicted_raw": "neutral",
+            "confidence": 0.13294614851474762,
             "correct": false
           },
           {
@@ -433,7 +297,7 @@
             "expected": "disgusted",
             "predicted": "neutral",
             "predicted_raw": "neutral",
-            "confidence": 0.1296158879995346,
+            "confidence": 0.1286342293024063,
             "correct": false
           },
           {
@@ -441,7 +305,7 @@
             "expected": "sad",
             "predicted": "angry",
             "predicted_raw": "angry",
-            "confidence": 0.13130852580070496,
+            "confidence": 0.1310565322637558,
             "correct": false
           },
           {
@@ -449,23 +313,15 @@
             "expected": "angry",
             "predicted": "neutral",
             "predicted_raw": "neutral",
-            "confidence": 0.1313139796257019,
+            "confidence": 0.1310805231332779,
             "correct": false
           },
           {
             "file": "intensity_angry_1.0.wav",
             "expected": "angry",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.1305491328239441,
-            "correct": false
-          },
-          {
-            "file": "new_awed_1.0.wav",
-            "expected": "awed",
             "predicted": "neutral",
             "predicted_raw": "neutral",
-            "confidence": 0.12912774085998535,
+            "confidence": 0.13083012402057648,
             "correct": false
           },
           {
@@ -473,7 +329,7 @@
             "expected": "neutral",
             "predicted": "angry",
             "predicted_raw": "angry",
-            "confidence": 0.13579638302326202,
+            "confidence": 0.13845844566822052,
             "correct": false
           },
           {
@@ -481,23 +337,15 @@
             "expected": "happy",
             "predicted": "angry",
             "predicted_raw": "angry",
-            "confidence": 0.13202762603759766,
+            "confidence": 0.13679368793964386,
             "correct": false
           },
           {
             "file": "intensity_happy_0.0.wav",
             "expected": "happy",
-            "predicted": "fearful",
-            "predicted_raw": "fearful",
-            "confidence": 0.13180096447467804,
-            "correct": false
-          },
-          {
-            "file": "transition_calm_excited.wav",
-            "expected": "excited",
             "predicted": "angry",
             "predicted_raw": "angry",
-            "confidence": 0.1345343291759491,
+            "confidence": 0.13406367599964142,
             "correct": false
           },
           {
@@ -505,31 +353,23 @@
             "expected": "angry",
             "predicted": "neutral",
             "predicted_raw": "neutral",
-            "confidence": 0.13229279220104218,
+            "confidence": 0.13213777542114258,
             "correct": false
-          },
-          {
-            "file": "new_bored_1.0.wav",
-            "expected": "bored",
-            "predicted": "sad",
-            "predicted_raw": "sad",
-            "confidence": 0.13066929578781128,
-            "correct": true
           },
           {
             "file": "intensity_happy_1.5.wav",
             "expected": "happy",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.13001641631126404,
-            "correct": true
+            "predicted": "angry",
+            "predicted_raw": "angry",
+            "confidence": 0.13388337194919586,
+            "correct": false
           },
           {
             "file": "basic_excited_1.0.wav",
             "expected": "excited",
             "predicted": "angry",
             "predicted_raw": "angry",
-            "confidence": 0.1318810135126114,
+            "confidence": 0.13200773298740387,
             "correct": false
           },
           {
@@ -537,47 +377,23 @@
             "expected": "sad",
             "predicted": "angry",
             "predicted_raw": "angry",
-            "confidence": 0.13147427141666412,
-            "correct": false
-          },
-          {
-            "file": "new_affectionate_1.0.wav",
-            "expected": "affectionate",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.1365039199590683,
+            "confidence": 0.1362898200750351,
             "correct": false
           },
           {
             "file": "intensity_angry_0.0.wav",
             "expected": "angry",
-            "predicted": "surprised",
-            "predicted_raw": "surprised",
-            "confidence": 0.13400498032569885,
-            "correct": false
-          },
-          {
-            "file": "basic_calm_1.0.wav",
-            "expected": "calm",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.13239823281764984,
+            "predicted": "neutral",
+            "predicted_raw": "neutral",
+            "confidence": 0.13329747319221497,
             "correct": false
           },
           {
             "file": "intensity_angry_0.5.wav",
             "expected": "angry",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.13390399515628815,
-            "correct": false
-          },
-          {
-            "file": "transition_neutral_happy.wav",
-            "expected": "happy",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.13401859998703003,
+            "predicted": "fearful",
+            "predicted_raw": "fearful",
+            "confidence": 0.12969179451465607,
             "correct": false
           },
           {
@@ -585,27 +401,19 @@
             "expected": "happy",
             "predicted": "angry",
             "predicted_raw": "angry",
-            "confidence": 0.13425269722938538,
-            "correct": false
-          },
-          {
-            "file": "new_sarcastic_1.0.wav",
-            "expected": "sarcastic",
-            "predicted": "fearful",
-            "predicted_raw": "fearful",
-            "confidence": 0.13058137893676758,
+            "confidence": 0.1338467299938202,
             "correct": false
           }
         ],
-        "accuracy": 0.1724137931034483
+        "accuracy": 0.1
       },
       "dpngtm": {
-        "total": 29,
-        "correct": 8,
+        "total": 20,
+        "correct": 4,
         "by_emotion": {
           "happy": {
-            "total": 7,
-            "correct": 4
+            "total": 5,
+            "correct": 3
           },
           "sad": {
             "total": 5,
@@ -615,10 +423,6 @@
             "total": 1,
             "correct": 0
           },
-          "contemptuous": {
-            "total": 1,
-            "correct": 1
-          },
           "fearful": {
             "total": 1,
             "correct": 0
@@ -631,31 +435,212 @@
             "total": 5,
             "correct": 0
           },
-          "awed": {
-            "total": 1,
-            "correct": 1
-          },
           "neutral": {
             "total": 1,
             "correct": 0
           },
           "excited": {
-            "total": 2,
+            "total": 1,
+            "correct": 1
+          }
+        },
+        "predictions": [
+          {
+            "file": "basic_happy_1.0.wav",
+            "expected": "happy",
+            "predicted": "disgusted",
+            "predicted_raw": "disgust",
+            "confidence": 0.6506720185279846,
+            "correct": false
+          },
+          {
+            "file": "intensity_sad_1.5.wav",
+            "expected": "sad",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.8469617962837219,
+            "correct": false
+          },
+          {
+            "file": "intensity_sad_1.0.wav",
+            "expected": "sad",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.9646597504615784,
+            "correct": false
+          },
+          {
+            "file": "basic_surprised_1.0.wav",
+            "expected": "surprised",
+            "predicted": "disgusted",
+            "predicted_raw": "disgust",
+            "confidence": 0.4116378128528595,
+            "correct": false
+          },
+          {
+            "file": "intensity_sad_0.5.wav",
+            "expected": "sad",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.5559096932411194,
+            "correct": false
+          },
+          {
+            "file": "basic_fearful_1.0.wav",
+            "expected": "fearful",
+            "predicted": "angry",
+            "predicted_raw": "angry",
+            "confidence": 0.6808648705482483,
+            "correct": false
+          },
+          {
+            "file": "basic_disgusted_1.0.wav",
+            "expected": "disgusted",
+            "predicted": "angry",
+            "predicted_raw": "angry",
+            "confidence": 0.7435685992240906,
+            "correct": false
+          },
+          {
+            "file": "intensity_sad_0.0.wav",
+            "expected": "sad",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.9620989561080933,
+            "correct": false
+          },
+          {
+            "file": "basic_angry_1.0.wav",
+            "expected": "angry",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.9502438306808472,
+            "correct": false
+          },
+          {
+            "file": "intensity_angry_1.0.wav",
+            "expected": "angry",
+            "predicted": "disgusted",
+            "predicted_raw": "disgust",
+            "confidence": 0.8524270057678223,
+            "correct": false
+          },
+          {
+            "file": "basic_neutral_1.0.wav",
+            "expected": "neutral",
+            "predicted": "calm",
+            "predicted_raw": "calm",
+            "confidence": 0.9664788246154785,
+            "correct": false
+          },
+          {
+            "file": "intensity_happy_0.5.wav",
+            "expected": "happy",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.8260643482208252,
+            "correct": true
+          },
+          {
+            "file": "intensity_happy_0.0.wav",
+            "expected": "happy",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.823645293712616,
+            "correct": true
+          },
+          {
+            "file": "intensity_angry_1.5.wav",
+            "expected": "angry",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.6333193778991699,
+            "correct": false
+          },
+          {
+            "file": "intensity_happy_1.5.wav",
+            "expected": "happy",
+            "predicted": "angry",
+            "predicted_raw": "angry",
+            "confidence": 0.5100985765457153,
+            "correct": false
+          },
+          {
+            "file": "basic_excited_1.0.wav",
+            "expected": "excited",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.7003543376922607,
+            "correct": true
+          },
+          {
+            "file": "basic_sad_1.0.wav",
+            "expected": "sad",
+            "predicted": "angry",
+            "predicted_raw": "angry",
+            "confidence": 0.4718171954154968,
+            "correct": false
+          },
+          {
+            "file": "intensity_angry_0.0.wav",
+            "expected": "angry",
+            "predicted": "disgusted",
+            "predicted_raw": "disgust",
+            "confidence": 0.41632500290870667,
+            "correct": false
+          },
+          {
+            "file": "intensity_angry_0.5.wav",
+            "expected": "angry",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.8919396996498108,
+            "correct": false
+          },
+          {
+            "file": "intensity_happy_1.0.wav",
+            "expected": "happy",
+            "predicted": "happy",
+            "predicted_raw": "happy",
+            "confidence": 0.9718183875083923,
+            "correct": true
+          }
+        ],
+        "accuracy": 0.2
+      },
+      "speechbrain_iemocap": {
+        "total": 20,
+        "correct": 4,
+        "by_emotion": {
+          "happy": {
+            "total": 5,
             "correct": 1
           },
-          "bored": {
+          "sad": {
+            "total": 5,
+            "correct": 0
+          },
+          "surprised": {
             "total": 1,
             "correct": 0
           },
-          "affectionate": {
+          "fearful": {
             "total": 1,
             "correct": 0
           },
-          "calm": {
+          "disgusted": {
+            "total": 1,
+            "correct": 0
+          },
+          "angry": {
+            "total": 5,
+            "correct": 2
+          },
+          "neutral": {
             "total": 1,
             "correct": 1
           },
-          "sarcastic": {
+          "excited": {
             "total": 1,
             "correct": 0
           }
@@ -665,236 +650,164 @@
             "file": "basic_happy_1.0.wav",
             "expected": "happy",
             "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.4897516369819641,
+            "predicted_raw": "hap",
+            "confidence": 0.9999988079071045,
             "correct": true
           },
           {
             "file": "intensity_sad_1.5.wav",
             "expected": "sad",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9718388915061951,
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 1.0,
             "correct": false
           },
           {
             "file": "intensity_sad_1.0.wav",
             "expected": "sad",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.8646695613861084,
+            "predicted": "happy",
+            "predicted_raw": "hap",
+            "confidence": 1.0,
             "correct": false
           },
           {
             "file": "basic_surprised_1.0.wav",
             "expected": "surprised",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.7754891514778137,
+            "predicted": "neutral",
+            "predicted_raw": "neu",
+            "confidence": 0.6704472899436951,
             "correct": false
-          },
-          {
-            "file": "new_contemptuous_1.0.wav",
-            "expected": "contemptuous",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.703881561756134,
-            "correct": true
           },
           {
             "file": "intensity_sad_0.5.wav",
             "expected": "sad",
-            "predicted": "calm",
-            "predicted_raw": "calm",
-            "confidence": 0.5451462864875793,
+            "predicted": "happy",
+            "predicted_raw": "hap",
+            "confidence": 0.9998526573181152,
             "correct": false
           },
           {
             "file": "basic_fearful_1.0.wav",
             "expected": "fearful",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.7619981169700623,
+            "predicted": "neutral",
+            "predicted_raw": "neu",
+            "confidence": 0.9997493624687195,
             "correct": false
-          },
-          {
-            "file": "transition_sad_happy.wav",
-            "expected": "happy",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9088987112045288,
-            "correct": true
           },
           {
             "file": "basic_disgusted_1.0.wav",
             "expected": "disgusted",
             "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.7334760427474976,
+            "predicted_raw": "ang",
+            "confidence": 0.9999996423721313,
             "correct": false
           },
           {
             "file": "intensity_sad_0.0.wav",
             "expected": "sad",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9238893985748291,
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 0.9999302625656128,
             "correct": false
           },
           {
             "file": "basic_angry_1.0.wav",
             "expected": "angry",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.4564720690250397,
+            "predicted": "neutral",
+            "predicted_raw": "neu",
+            "confidence": 0.9980831146240234,
             "correct": false
           },
           {
             "file": "intensity_angry_1.0.wav",
             "expected": "angry",
             "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9073558449745178,
+            "predicted_raw": "hap",
+            "confidence": 0.9999971389770508,
             "correct": false
-          },
-          {
-            "file": "new_awed_1.0.wav",
-            "expected": "awed",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9313931465148926,
-            "correct": true
           },
           {
             "file": "basic_neutral_1.0.wav",
             "expected": "neutral",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.5011650323867798,
-            "correct": false
+            "predicted": "neutral",
+            "predicted_raw": "neu",
+            "confidence": 0.5603520274162292,
+            "correct": true
           },
           {
             "file": "intensity_happy_0.5.wav",
             "expected": "happy",
-            "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.5181921720504761,
+            "predicted": "neutral",
+            "predicted_raw": "neu",
+            "confidence": 0.9999997615814209,
             "correct": false
           },
           {
             "file": "intensity_happy_0.0.wav",
             "expected": "happy",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9802815318107605,
-            "correct": true
-          },
-          {
-            "file": "transition_calm_excited.wav",
-            "expected": "excited",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9756676554679871,
-            "correct": true
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 0.9999997615814209,
+            "correct": false
           },
           {
             "file": "intensity_angry_1.5.wav",
             "expected": "angry",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.5562900304794312,
-            "correct": false
-          },
-          {
-            "file": "new_bored_1.0.wav",
-            "expected": "bored",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.9474828839302063,
-            "correct": false
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 1.0,
+            "correct": true
           },
           {
             "file": "intensity_happy_1.5.wav",
             "expected": "happy",
             "predicted": "angry",
-            "predicted_raw": "angry",
-            "confidence": 0.637351930141449,
+            "predicted_raw": "ang",
+            "confidence": 1.0,
             "correct": false
           },
           {
             "file": "basic_excited_1.0.wav",
             "expected": "excited",
-            "predicted": "calm",
-            "predicted_raw": "calm",
-            "confidence": 0.9734393954277039,
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 0.9999953508377075,
             "correct": false
           },
           {
             "file": "basic_sad_1.0.wav",
             "expected": "sad",
-            "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.8750752806663513,
-            "correct": false
-          },
-          {
-            "file": "new_affectionate_1.0.wav",
-            "expected": "affectionate",
-            "predicted": "calm",
-            "predicted_raw": "calm",
-            "confidence": 0.9666005373001099,
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 1.0,
             "correct": false
           },
           {
             "file": "intensity_angry_0.0.wav",
             "expected": "angry",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.644361674785614,
-            "correct": false
-          },
-          {
-            "file": "basic_calm_1.0.wav",
-            "expected": "calm",
-            "predicted": "calm",
-            "predicted_raw": "calm",
-            "confidence": 0.7479086518287659,
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 1.0,
             "correct": true
           },
           {
             "file": "intensity_angry_0.5.wav",
             "expected": "angry",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.7963424921035767,
-            "correct": false
-          },
-          {
-            "file": "transition_neutral_happy.wav",
-            "expected": "happy",
             "predicted": "happy",
-            "predicted_raw": "happy",
-            "confidence": 0.5103553533554077,
-            "correct": true
+            "predicted_raw": "hap",
+            "confidence": 0.9003748893737793,
+            "correct": false
           },
           {
             "file": "intensity_happy_1.0.wav",
             "expected": "happy",
-            "predicted": "calm",
-            "predicted_raw": "calm",
-            "confidence": 0.982258677482605,
-            "correct": false
-          },
-          {
-            "file": "new_sarcastic_1.0.wav",
-            "expected": "sarcastic",
-            "predicted": "disgusted",
-            "predicted_raw": "disgust",
-            "confidence": 0.7342514395713806,
+            "predicted": "angry",
+            "predicted_raw": "ang",
+            "confidence": 0.9957758784294128,
             "correct": false
           }
         ],
-        "accuracy": 0.27586206896551724
+        "accuracy": 0.2
       }
     },
     "detailed_results": []

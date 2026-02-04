@@ -78,7 +78,167 @@ CHECKPOINT_CONFIGS = {
         "language": "en",
         "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised", "excited"],
     },
-
+    "v05_ravdess": {
+        "path": "checkpoints/emotion_lora_ravdess_v05/checkpoint_epoch_15.pt",
+        "dataset": "RAVDESS-V05",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    # === Experiment checkpoints (V06 improvement sweep) ===
+    "exp_a_epoch1": {
+        "path": "checkpoints/exp_a_v03_replica/checkpoint_epoch_1.pt",
+        "dataset": "ExpA-Epoch1",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_a_epoch2": {
+        "path": "checkpoints/exp_a_v03_replica/checkpoint_epoch_2.pt",
+        "dataset": "ExpA-Epoch2",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_a_epoch3": {
+        "path": "checkpoints/exp_a_v03_replica/checkpoint_epoch_3.pt",
+        "dataset": "ExpA-Epoch3",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_b_epoch2": {
+        "path": "checkpoints/exp_b_cosine/checkpoint_epoch_2.pt",
+        "dataset": "ExpB-Epoch2",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_b_epoch3": {
+        "path": "checkpoints/exp_b_cosine/checkpoint_epoch_3.pt",
+        "dataset": "ExpB-Epoch3",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_c1_epoch2": {
+        "path": "checkpoints/exp_c1_ser02/checkpoint_epoch_2.pt",
+        "dataset": "ExpC1-Epoch2",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_c3_epoch2": {
+        "path": "checkpoints/exp_c3_ser05/checkpoint_epoch_2.pt",
+        "dataset": "ExpC3-Epoch2",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_d2_epoch2": {
+        "path": "checkpoints/exp_d2_wd5e3/checkpoint_epoch_2.pt",
+        "dataset": "ExpD2-Epoch2",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    "exp_d3_epoch2": {
+        "path": "checkpoints/exp_d3_wd01/checkpoint_epoch_2.pt",
+        "dataset": "ExpD3-Epoch2",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    # === V06 Production Checkpoint ===
+    # Best available: V03-SER epoch 2 (avg ~65.5% emotion2vec, range 62-69%)
+    "v06_ravdess": {
+        "path": "checkpoints/emotion_lora_ravdess_v06/checkpoint_best.pt",
+        "dataset": "RAVDESS-V06",
+        "samples": 1440,
+        "language": "en",
+        "emotions": ["neutral", "calm", "happy", "sad", "angry", "fearful", "disgusted", "surprised"],
+    },
+    # === CREMA-D V05 (trained with V03-SER recipe, 15 epochs) ===
+    "cremad_v05": {
+        "path": "checkpoints/emotion_lora_cremad_v05/checkpoint_epoch_15.pt",
+        "dataset": "CREMAD-V05",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    # === CREMA-D V05 — 7 core emotions only ===
+    "cremad_v05_core7": {
+        "path": "checkpoints/emotion_lora_cremad_v05/checkpoint_epoch_15.pt",
+        "dataset": "CREMAD-V05-CORE7",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["angry", "disgusted", "fearful", "happy", "neutral", "sad", "surprised"],
+    },
+    # === CREMA-D Experiments ===
+    "exp_ca_epoch2": {
+        "path": "checkpoints/exp_ca_v03_replica/checkpoint_epoch_2.pt",
+        "dataset": "ExpCA-Epoch2",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    "exp_ca_epoch3": {
+        "path": "checkpoints/exp_ca_v03_replica/checkpoint_epoch_3.pt",
+        "dataset": "ExpCA-Epoch3",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    "exp_cb_epoch2": {
+        "path": "checkpoints/exp_cb_cosine/checkpoint_epoch_2.pt",
+        "dataset": "ExpCB-Epoch2",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    "exp_cc1_epoch2": {
+        "path": "checkpoints/exp_cc1_ser02/checkpoint_epoch_2.pt",
+        "dataset": "ExpCC1-Epoch2",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    "exp_cc3_epoch2": {
+        "path": "checkpoints/exp_cc3_ser05/checkpoint_epoch_2.pt",
+        "dataset": "ExpCC3-Epoch2",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    "exp_cd2_epoch2": {
+        "path": "checkpoints/exp_cd2_wd5e3/checkpoint_epoch_2.pt",
+        "dataset": "ExpCD2-Epoch2",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    "exp_cd3_epoch2": {
+        "path": "checkpoints/exp_cd3_wd01/checkpoint_epoch_2.pt",
+        "dataset": "ExpCD3-Epoch2",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    "exp_ce_epoch2": {
+        "path": "checkpoints/exp_ce_balanced/checkpoint_epoch_2.pt",
+        "dataset": "ExpCE-Epoch2",
+        "samples": 7442,
+        "language": "en",
+        "emotions": ["neutral", "happy", "sad", "angry", "fearful", "disgusted"],
+    },
+    # === Combined V07 (RAVDESS + CREMA-D + IESC, LoRA rank=16) ===
+    "combined_v07": {
+        "path": "checkpoints/emotion_lora_combined_v07/checkpoint_epoch_5.pt",
+        "dataset": "Combined-V07",
+        "samples": 9482,
+        "language": "en",
+        "emotions": ["angry", "disgusted", "fearful", "happy", "neutral", "sad", "surprised"],
+    },
 }
 
 # New emotions in v0.3
@@ -211,6 +371,7 @@ def run_checkpoint_benchmark(
     audio_prompt: Optional[str] = None,
     skip_transitions: bool = False,
     skip_new_emotions: bool = False,
+    use_calibration: bool = True,
 ) -> BenchmarkResults:
     """
     Run benchmark for a single checkpoint.
@@ -306,6 +467,7 @@ def run_checkpoint_benchmark(
                 emotion_intensity=intensity,
                 temperature=0.8,
                 cfg_weight=0.5,
+                use_calibration=use_calibration,
             )
 
             filename = f"basic_{emotion}_{intensity}.wav"
@@ -371,6 +533,7 @@ def run_checkpoint_benchmark(
                 emotion_intensity=intensity,
                 temperature=0.8,
                 cfg_weight=0.5,
+                use_calibration=use_calibration,
             )
 
             filename = f"intensity_{emotion}_{intensity}.wav"
@@ -734,7 +897,20 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser", "v04_full", "all"],
+        choices=["ravdess", "cremad", "iesc", "iesc_ser", "ravdess_ser", "cremad_ser",
+                 "v04_full", "v05_ravdess",
+                 "exp_a_epoch1", "exp_a_epoch2", "exp_a_epoch3",
+                 "exp_b_epoch2", "exp_b_epoch3",
+                 "exp_c1_epoch2", "exp_c3_epoch2",
+                 "exp_d2_epoch2", "exp_d3_epoch2",
+                 "v06_ravdess", "cremad_v05", "cremad_v05_core7",
+                 "exp_ca_epoch2", "exp_ca_epoch3",
+                 "exp_cb_epoch2",
+                 "exp_cc1_epoch2", "exp_cc3_epoch2",
+                 "exp_cd2_epoch2", "exp_cd3_epoch2",
+                 "exp_ce_epoch2",
+                 "combined_v07",
+                 "all"],
         default="all",
         help="Checkpoint to benchmark (default: all)",
     )
@@ -776,6 +952,11 @@ def main():
         action="store_true",
         help="Generate comparison report after benchmarking",
     )
+    parser.add_argument(
+        "--no-calibration",
+        action="store_true",
+        help="Disable intensity calibration during audio generation",
+    )
 
     args = parser.parse_args()
     output_dir = Path(args.output)
@@ -794,6 +975,7 @@ def main():
     else:
         checkpoints = [args.checkpoint]
 
+    use_calibration = not args.no_calibration
     all_results = {}
     for checkpoint in checkpoints:
         results = run_checkpoint_benchmark(
@@ -803,6 +985,7 @@ def main():
             audio_prompt=args.audio_prompt,
             skip_transitions=args.skip_transitions,
             skip_new_emotions=args.skip_new_emotions,
+            use_calibration=use_calibration,
         )
         all_results[checkpoint] = results
 

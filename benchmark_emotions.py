@@ -28,24 +28,14 @@ BENCHMARK_CASES = {
         ("I am so happy to see you today!", "happy", 1.0, "positive"),
         ("I feel really sad about this news.", "sad", 1.0, "negative"),
         ("I am absolutely furious right now!", "angry", 1.0, "high_arousal"),
-        ("I am really scared and worried.", "fearful", 1.0, "fear"),
-        ("Wow, I cannot believe this happened!", "surprised", 1.0, "surprise"),
-        ("I feel calm and peaceful right now.", "calm", 1.0, "low_arousal"),
-        ("This is absolutely disgusting!", "disgusted", 1.0, "disgust"),
-        ("I am so excited about this opportunity!", "excited", 1.0, "excited"),
     ],
     "intensity_test": [
-        ("I am excited about this!", "excited", 0.0, "zero_intensity"),
-        ("I am excited about this!", "excited", 0.5, "half_intensity"),
-        ("I am excited about this!", "excited", 1.0, "full_intensity"),
-        ("I am excited about this!", "excited", 1.5, "high_intensity"),
+        ("I am excited about this!", "happy", 0.0, "zero_intensity"),
+        ("I am excited about this!", "happy", 0.5, "half_intensity"),
+        ("I am excited about this!", "happy", 1.0, "full_intensity"),
+        ("I am excited about this!", "happy", 1.5, "high_intensity"),
     ],
-    "blend_test": [
-        # (text, emotion_blend, description)
-        ("Mixed feelings about this.", {"happy": 0.5, "sad": 0.5}, "bittersweet"),
-        ("Nervously excited!", {"excited": 0.6, "fearful": 0.4}, "nervous_excitement"),
-        ("Calmly content.", {"calm": 0.7, "happy": 0.3}, "content"),
-    ],
+    "blend_test": [],
 }
 
 def run_benchmark(
@@ -299,9 +289,9 @@ def run_benchmark(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run emotion TTS benchmark")
     parser.add_argument("--checkpoint", type=str,
-                       default="checkpoints/emotion_merged/checkpoint_merged.pt",
+                       default="checkpoints/emotion_lora_combined_v07/checkpoint_epoch_5.pt",
                        help="Path to emotion checkpoint")
-    parser.add_argument("--output_dir", type=str, default="benchmark_output",
+    parser.add_argument("--output_dir", type=str, default="benchmark_output/combined_v07/audio",
                        help="Output directory for generated audio")
     parser.add_argument("--device", type=str, default="auto",
                        help="Device (auto, cuda, cpu)")

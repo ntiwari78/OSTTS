@@ -21,7 +21,7 @@ class LoRALayer(nn.Module):
         self,
         in_features: int,
         out_features: int,
-        rank: int = 8,
+        rank: int = 16,
         alpha: float = 16.0,
         dropout: float = 0.0,
     ):
@@ -69,7 +69,7 @@ class LoRALinear(nn.Module):
     def __init__(
         self,
         base_layer: nn.Linear,
-        rank: int = 8,
+        rank: int = 16,
         alpha: float = 16.0,
         dropout: float = 0.0,
     ):
@@ -175,7 +175,7 @@ class AdapterLayer(nn.Module):
 def apply_lora_to_linear(
     module: nn.Module,
     target_modules: list = None,
-    rank: int = 8,
+    rank: int = 16,
     alpha: float = 16.0,
     dropout: float = 0.0,
 ) -> nn.Module:
@@ -249,7 +249,7 @@ def add_adapters_to_transformer(
 
 def apply_lora_to_emotion_cross_attention(
     emotion_cross_attn: nn.Module,
-    rank: int = 8,
+    rank: int = 16,
     alpha: float = 16.0,
     dropout: float = 0.0,
 ) -> nn.Module:
