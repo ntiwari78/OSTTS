@@ -71,7 +71,7 @@ def main():
     ]
 
     # Optional: Reference audio for voice cloning
-    AUDIO_PROMPT_PATH = "Neha_1.wav"
+    AUDIO_PROMPT_PATH = "Lady_voice_sample_1.wav"
     audio_prompt = AUDIO_PROMPT_PATH if Path(AUDIO_PROMPT_PATH).exists() else None
     if audio_prompt:
         print(f"Using reference audio: {AUDIO_PROMPT_PATH}")
@@ -111,7 +111,7 @@ def example_with_different_emotions(use_finetuned=True, checkpoint_path=None):
         use_finetuned: If True, load fine-tuned model from checkpoint
         checkpoint_path: Path to fine-tuned checkpoint
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
     print("Loading model for emotion examples...")
 
     model = ChatterboxMultilingualTTS.from_pretrained(device=device)
@@ -238,7 +238,7 @@ def example_emotion_blending():
     Blend multiple emotions by specifying weights that sum to any positive value
     (they will be normalized internally).
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
     print("Loading model for emotion blending examples...")
     model = ChatterboxMultilingualTTS.from_pretrained(device=device)
 
@@ -311,7 +311,7 @@ def example_context_appropriate_emotions(use_finetuned=True, checkpoint_path=Non
     Example testing emotions with context-appropriate English texts.
     Each text is matched with an appropriate emotion.
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
     print("Loading model for context-appropriate emotion examples...")
 
     model = ChatterboxMultilingualTTS.from_pretrained(device=device)
@@ -456,7 +456,7 @@ def example_compare_intensity_vs_blend():
     1. Using intensity to scale a single emotion
     2. Using blending to mix with neutral
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
     print("Loading model for intensity vs blend comparison...")
     model = ChatterboxMultilingualTTS.from_pretrained(device=device)
 
