@@ -62,7 +62,7 @@ def main():
     ]
 
     # Optional: Reference audio for voice cloning
-    AUDIO_PROMPT_PATH = "Neha_1.wav"  # Change to your reference audio file
+    AUDIO_PROMPT_PATH = "Female_voice_sample_1.wav"  # Change to your reference audio file
     audio_prompt = None
     if Path(AUDIO_PROMPT_PATH).exists():
         audio_prompt = AUDIO_PROMPT_PATH
