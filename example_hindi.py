@@ -99,7 +99,7 @@ def example_with_custom_voice():
     """
     Example showing voice cloning with a custom reference audio.
     """
-    AUDIO_PROMPT_PATH = "Neha_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
 
     if not Path(AUDIO_PROMPT_PATH).exists():
         print(f"Reference audio not found: {AUDIO_PROMPT_PATH}")
@@ -136,7 +136,7 @@ def example_with_different_emotions(use_finetuned=False, checkpoint_path=None):
         use_finetuned: If True, load fine-tuned model from checkpoint
         checkpoint_path: Path to fine-tuned checkpoint (default: checkpoints/emotion_lora/checkpoint_epoch_1.pt)
     """
-    AUDIO_PROMPT_PATH = "Neha_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
     print("Loading model for emotion examples...")
     
     if use_finetuned:
@@ -228,7 +228,7 @@ def example_iesc_emotions_only(use_finetuned=True, checkpoint_path=None):
     Example testing only the IESC fine-tuned emotions (happy, sad, angry, neutral, fearful).
     These emotions were fine-tuned on the Indian Emotional Speech Corpora dataset.
     """
-    AUDIO_PROMPT_PATH = "Neha_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
     print("Loading model for IESC emotion examples...")
     
     if use_finetuned:
