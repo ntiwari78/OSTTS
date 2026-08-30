@@ -81,7 +81,7 @@ def example_merged_emotions():
     Example showing all emotions with the merged checkpoint in Hindi.
     Tests emotions that were fine-tuned across all three datasets.
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
 
     model = load_model_with_merged_checkpoint()
 
@@ -132,7 +132,7 @@ def example_context_appropriate_emotions():
     Example testing emotions with context-appropriate Hindi texts.
     Each text is matched with an appropriate emotion.
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
 
     model = load_model_with_merged_checkpoint()
 
@@ -185,7 +185,7 @@ def example_emotion_intensity():
     """
     Example demonstrating emotion intensity control with merged checkpoint for Hindi.
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
 
     model = load_model_with_merged_checkpoint()
 
@@ -237,7 +237,7 @@ def example_emotion_blending():
     """
     Example demonstrating emotion blending with merged checkpoint for Hindi.
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
 
     model = load_model_with_merged_checkpoint()
 
@@ -308,7 +308,7 @@ def example_compare_checkpoints():
     """
     Compare outputs from individual checkpoints vs merged checkpoint for Hindi.
     """
-    AUDIO_PROMPT_PATH = "Dhruv_1.wav"
+    AUDIO_PROMPT_PATH = "Male_voice_sample_1.wav"
 
     text = "मुझे आज आप सभी के साथ यहाँ रहकर बहुत खुशी हो रही है!"
     emotion = "happy"
